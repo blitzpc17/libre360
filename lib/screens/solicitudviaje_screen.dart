@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -12,25 +13,53 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SolicitarViajeScreen extends StatefulWidget {
-  const SolicitarViajeScreen({super.key});
-  static  String name ="solicitudviaje_screen";
+  
+  static String name = "solicitudviaje_screen";
+  final LatLng? initialLocation;
+
+  const SolicitarViajeScreen({super.key, this.initialLocation});
 
   @override
   State<SolicitarViajeScreen> createState() => _SolicitarViajeScreenState();
 }
 
 class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
+  
   var editando = false;
   var viajeEncontrado = false;
   late Size _pantalla;
   final Completer<GoogleMapController> _controller = Completer();
-
-  //agregar ubicacion del usuario para ponerla en el btn pintado arriba pro defualt
+  String? _Nombreorigen = "Seleccione el lugar de origen.";
 
   static const CameraPosition _initialPosition = CameraPosition(
-    target: const LatLng(18.4624477,-97.3953397),
-    zoom: 14
+    target: LatLng(18.4624477, -97.3953397),
+    zoom: 14,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.initialLocation!=null){
+      _getAddressFromLatLng(LatLng(widget.initialLocation!.latitude, widget.initialLocation!.longitude) );
+    }
+    
+  }
+
+  Future<void> _getAddressFromLatLng(LatLng position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude, position.longitude);
+      Placemark place = placemarks[0];
+
+      setState(() {
+        print(place);
+        _Nombreorigen =
+            "${place.name} ${place.street}, ${place.postalCode}, ${place.locality}";
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,157 +80,166 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
         ),
         drawer: const Menulateral(),
         body: Stack(
-          children: 
-          [
-           GoogleMap(
-            initialCameraPosition: _initialPosition,
-            mapType: MapType.normal,
-            //markers,
-            onMapCreated: (GoogleMapController controller){
-              _controller.complete(controller);
-            },
-          ),
-          
-          SafeArea(child: Container(
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 20),
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.10,
-                    child: const Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        "Solicitar Viaje",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 25),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.0005,
-                    color: Colors.black54,
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 15, vertical: viajeEncontrado ? 10 : 5),
-                    width: constraints.maxWidth,
-                    height: viajeEncontrado
-                        ? ((constraints.maxHeight * 0.80) +
-                            constraints.maxHeight * 0.098)
-                        : constraints.maxHeight * 0.80,
-                    child: LayoutBuilder(builder: (context, constraints5) {
-                      return Stack(children: [
-                        SizedBox(
-                          width: constraints.maxWidth,
-                          height: constraints5.maxHeight,
-                          
-                        ),
-                        SizedBox(
-                          width: constraints5.maxWidth,
-                          height: constraints5.maxHeight * 0.25,
-                          child:
-                              LayoutBuilder(builder: (context, constraints11) {
-                            return Column(
-                              children: [
-                                BotonPersonalizado(
-                                    ancho: constraints11.maxWidth,
-                                    alto: constraints11.maxHeight * 0.35,
-                                    color: Colors.black,
-                                    altoIconos: 0.50,
-                                    anchoIconos: 0.10,
-                                    deshabFondoIconos: true,
-                                    colorIconos: Colors.grey,
-                                    icono: FontAwesomeIcons.locationDot,
-                                    texto: "Selecciona dirección de origen",
-                                    iconoAux: FontAwesomeIcons.shareFromSquare,
-                                    onChanged: (){
-                                      final result = context.pushNamed(SeleccionUbicacionScreen.name, extra: "Ubicación origen");
-                                    }),
-                                SizedBox(
-                                  height: constraints11.maxHeight * 0.05,
-                                ),
-                                BotonPersonalizado(
-                                    ancho: constraints11.maxWidth,
-                                    alto: constraints11.maxHeight * 0.35,
-                                    color: Colors.black,
-                                    altoIconos: 0.50,
-                                    anchoIconos: 0.10,
-                                    colorIconos: Colors.grey,
-                                    deshabFondoIconos: true,
-                                    icono: FontAwesomeIcons.flag,
-                                    iconoAux: FontAwesomeIcons.shareFromSquare,
-                                    texto: "Selecciona dirección de destino",
-                                    onChanged: null)
-                              ],
-                            );
-                          }),
-                        ),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: SizedBox(
-                            width: constraints5.maxWidth * 0.75,
-                            height: constraints5.maxHeight * 0.18,
-                            child: viajeEncontrado
-                                ? _TarjetaChoferAsignado(
-                                    ancho: constraints5.maxWidth * 0.60,
-                                    alto: constraints5.maxHeight * 0.32)
-                                : _TarjetaTipoViaje(
-                                    ancho: constraints5.maxWidth * 0.60,
-                                    alto: constraints5.maxHeight * 0.25),
+          children: [
+            GoogleMap(
+              initialCameraPosition: _initialPosition,
+              mapType: MapType.normal,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+            ),
+            SafeArea(
+              child: Container(
+                child: LayoutBuilder(builder: (context, constraints) {
+                  return Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 20),
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight * 0.10,
+                        child: const Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            "Solicitar Viaje",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 25),
                           ),
-                        )
-                      ]);
-                    }),
-                  ),
-                  Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 50, vertical: 10),
-                      width: constraints.maxWidth,
-                      height: viajeEncontrado
-                          ? constraints.maxHeight * 0
-                          : constraints.maxHeight * 0.098,
-                      child: LayoutBuilder(
-                        builder: (context, constraints12) {
-                          return BotonPersonalizado(
-                              ancho: constraints12.maxWidth * 0.10,
-                              alto: constraints12.maxHeight * 0.35,
-                              color: Colors.black,
-                              icono: FontAwesomeIcons.circleCheck,
-                              texto: "Pedir viaje",
-                              onChanged: () async =>
-                                  //_mostrarAlertaBuscandoChofer(),
-                                  await _mostrarAlertaCalificarViaje());
-                        },
-                      ))
-                ],
-              );
-            }),
-          ))],
+                        ),
+                      ),
+                      Container(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight * 0.0005,
+                        color: Colors.black54,
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 15, vertical: viajeEncontrado ? 10 : 5),
+                        width: constraints.maxWidth,
+                        height: viajeEncontrado
+                            ? ((constraints.maxHeight * 0.80) +
+                                constraints.maxHeight * 0.098)
+                            : constraints.maxHeight * 0.80,
+                        child: LayoutBuilder(builder: (context, constraints5) {
+                          return Stack(children: [
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              height: constraints5.maxHeight,
+                            ),
+                            SizedBox(
+                              width: constraints5.maxWidth,
+                              height: constraints5.maxHeight * 0.25,
+                              child: LayoutBuilder(
+                                  builder: (context, constraints11) {
+                                return Column(
+                                  children: [
+                                    BotonPersonalizado(
+                                        ancho: constraints11.maxWidth,
+                                        alto: constraints11.maxHeight * 0.35,
+                                        color: Colors.black,
+                                        altoIconos: 0.50,
+                                        anchoIconos: 0.10,
+                                        deshabFondoIconos: true,
+                                        colorIconos: Colors.grey,
+                                        icono: FontAwesomeIcons.locationDot,
+                                        texto:
+                                            _Nombreorigen, //"Selecciona dirección de origen",
+                                        iconoAux:
+                                            FontAwesomeIcons.shareFromSquare,
+                                        onChanged: () async {
+                                          final result = await context.pushNamed(
+                                              SeleccionUbicacionScreen.name,
+                                              extra: "Ubicación origen");
+                                          if (result != null) {
+                                            print("------------------------------------");
+ 
+                                            print("==============================");
+ 
+                                            print(result);
+                                            
+                                            print("========================================");
+                                            //_getAddressFromLatLng(result);
+                                          }
+                                          print("el perro boto: $result");
+                                        }),
+                                    SizedBox(
+                                      height: constraints11.maxHeight * 0.05,
+                                    ),
+                                    BotonPersonalizado(
+                                        ancho: constraints11.maxWidth,
+                                        alto: constraints11.maxHeight * 0.35,
+                                        color: Colors.black,
+                                        altoIconos: 0.50,
+                                        anchoIconos: 0.10,
+                                        colorIconos: Colors.grey,
+                                        deshabFondoIconos: true,
+                                        icono: FontAwesomeIcons.flag,
+                                        iconoAux:
+                                            FontAwesomeIcons.shareFromSquare,
+                                        texto:
+                                            "Selecciona dirección de destino",
+                                        onChanged: null)
+                                  ],
+                                );
+                              }),
+                            ),
+                           /* Align(
+                              alignment: Alignment.bottomCenter,
+                              child: SizedBox(
+                                width: constraints5.maxWidth * 0.75,
+                                height: constraints5.maxHeight * 0.18,
+                                child: viajeEncontrado
+                                    ? _TarjetaChoferAsignado(
+                                        ancho: constraints5.maxWidth * 0.60,
+                                        alto: constraints5.maxHeight * 0.32)
+                                    : _TarjetaTipoViaje(
+                                        ancho: constraints5.maxWidth * 0.60,
+                                        alto: constraints5.maxHeight * 0.25),
+                              ),
+                            )*/
+                          ]);
+                        }),
+                      ),
+                      Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 50, vertical: 10),
+                          width: constraints.maxWidth,
+                          height: viajeEncontrado
+                              ? constraints.maxHeight * 0
+                              : constraints.maxHeight * 0.098,
+                          child: LayoutBuilder(
+                            builder: (context, constraints12) {
+                              return BotonPersonalizado(
+                                  ancho: constraints12.maxWidth * 0.10,
+                                  alto: constraints12.maxHeight * 0.35,
+                                  color: Colors.black,
+                                  icono: FontAwesomeIcons.circleCheck,
+                                  texto: "Pedir viaje",
+                                  onChanged: () async =>
+                                      //_mostrarAlertaBuscandoChofer(),
+                                      await _mostrarAlertaCalificarViaje());
+                            },
+                          ))
+                    ],
+                  );
+                }),
+              ),
+            )
+          ],
         ),
-         floatingActionButton: Container(
+        floatingActionButton: Container(
           margin: const EdgeInsets.only(bottom: 200),
-           child: FloatingActionButton(
+          child: FloatingActionButton(
               child: const Icon(Icons.location_searching),
               onPressed: () async {
                 GoogleMapController controller = await _controller.future;
                 controller.animateCamera(CameraUpdate.newCameraPosition(
-                  const CameraPosition(
-                    target: LatLng(18.4624477,-97.3953397),
-                    zoom: 14
-                    )
-                ));
-                setState(() {
-                  
-                });
-              }
-            ),
-         ),
+                    const CameraPosition(
+                        target: LatLng(18.4624477, -97.3953397), zoom: 14)));
+                setState(() {});
+              }),
         ),
-        
+      ),
     );
   }
 
@@ -267,119 +305,64 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
         builder: (context) {
           return Container(
             width: _pantalla.width,
-            height: _pantalla.height * 0.30,
+            height: _pantalla.height * 0.25,
             decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(5), topRight: Radius.circular(5)),
-            ),
+                color: Colors.red,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5), topRight: Radius.circular(10)),
+                gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: <Color>[Colors.black, Colors.black38])),
             child: LayoutBuilder(builder: (context, constraints) {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
+                  SizedBox(
                     width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.20,
-                    decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(5),
-                            topRight: Radius.circular(5)),
-                        gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: <Color>[Colors.black, Colors.black38])),
+                    height: constraints.maxHeight * 0.40,
                     child: const Center(
                       child: Text(
-                        "Calificar viaje",
+                        "Califica el viaje realizado",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 14,
                             color: Colors.white),
                       ),
                     ),
                   ),
                   SizedBox(
                     width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.60,
-                    child: const Row(
-                      children: [
-                        Expanded(
-                            flex: 3,
-                            child: Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: CircleAvatar(
-                                  radius: 70,
-                                  backgroundImage: NetworkImage(
-                                      "https://static.wikia.nocookie.net/logopedia/images/3/3a/1024x1024bb.jpg"),
-                                ),
-                              ),
-                            )),
-                        Expanded(
-                            flex: 6,
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Conductor: Felix Rodriguez Montiel",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 15,
-                                        overflow: TextOverflow.ellipsis,
-                                        color: Colors.black),
-                                  ),
-                                  Text(
-                                    "Unidad: Nissan Tida",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 15,
-                                        overflow: TextOverflow.ellipsis,
-                                        color: Colors.black),
-                                  ),
-                                  Text(
-                                    "Modelo: 2015",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 15,
-                                        overflow: TextOverflow.ellipsis,
-                                        color: Colors.black),
-                                  ),
-                                  Text(
-                                    "Placas: N908YA",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 15,
-                                        overflow: TextOverflow.ellipsis,
-                                        color: Colors.black),
-                                  ),
-                                ],
-                              ),
-                            ))
-                      ],
+                    height: constraints.maxHeight * 0.40,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: RatingBar.builder(
+                        initialRating: 3,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        itemCount: 5,
+                        itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        itemBuilder: (context, _) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        onRatingUpdate: (rating) {
+                          print(rating);
+                        },
+                      ),
                     ),
                   ),
                   SizedBox(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.20,
+                    width: constraints.maxWidth * 0.25,
+                    height: constraints.maxHeight * 0.60,
                     child: Align(
-                        alignment: Alignment.center,
-                        child: RatingBar.builder(
-                          initialRating: 3,
-                          minRating: 1,
-                          direction: Axis.horizontal,
-                          allowHalfRating: true,
-                          itemSize: 25,
-                          itemCount: 5,
-                          itemPadding:
-                              const EdgeInsets.symmetric(horizontal: 4.0),
-                          itemBuilder: (context, _) => const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          onRatingUpdate: (rating) {},
-                        )),
+                      alignment: Alignment.topCenter,
+                      child: LoadingAnimationWidget.stretchedDots(
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -392,81 +375,57 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
 class _TarjetaTipoViaje extends StatelessWidget {
   final double ancho;
   final double alto;
-
-  const _TarjetaTipoViaje({required this.ancho, required this.alto});
+  final String nombreOrigen;
+  const _TarjetaTipoViaje({super.key, required this.ancho, required this.alto, required this.nombreOrigen});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: ancho,
       height: alto,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 5,
-            blurRadius: 7,
-            offset: const Offset(0, 3), // changes position of shadow
-          ),
-        ],
+      decoration: const BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: <Color>[Colors.black, Colors.black38],
+        ),
       ),
-      child: const Column(
-        children: [
-          Expanded(
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Checkbox(value: true, onChanged: null))),
-          Expanded(
-            flex: 4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                    child: CircleAvatar(
-                  radius: 22,
-                  backgroundImage:
-                      AssetImage("assets/imgbackgrounds/bg_solicitarviaje.png"),
-                )),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Clásico",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 12),
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Viajes ecónomicos y seguros.",
-                          style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              fontSize: 12,
-                              overflow: TextOverflow.ellipsis),
-                          textAlign: TextAlign.justify,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SizedBox(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight * 0.15,
+                child: Center(
                   child: Text(
-                    "\$ --",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    textAlign: TextAlign.end,
+                    nombreOrigen,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.white),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+              SizedBox(
+                width: constraints.maxWidth * 0.75,
+                height: constraints.maxHeight * 0.55,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: const [
+                    TipoViajeBoton(texto: "Normal", icono: FontAwesomeIcons.car),
+                    TipoViajeBoton(
+                        texto: "Compartido",
+                        icono: FontAwesomeIcons.peopleGroup)
+                  ],
+                ),
+              )
+            ],
+          );
+        },
       ),
     );
   }
@@ -475,125 +434,114 @@ class _TarjetaTipoViaje extends StatelessWidget {
 class _TarjetaChoferAsignado extends StatelessWidget {
   final double ancho;
   final double alto;
-
-  const _TarjetaChoferAsignado({required this.ancho, required this.alto});
+  const _TarjetaChoferAsignado(
+      {super.key, required this.ancho, required this.alto});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: ancho,
       height: alto,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: const Offset(0, 3), // changes position of shadow
-            ),
-          ],
-          gradient: const LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: <Color>[Colors.black, Colors.black38])),
-      child: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: const Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Pedro Ramirez Perez",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: Colors.white),
+      decoration: const BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: <Color>[Colors.black, Colors.black38],
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight * 0.25,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: constraints.maxWidth * 0.20,
+                      height: constraints.maxHeight,
+                      child: const CircleAvatar(
+                        radius: 30,
+                        backgroundImage: AssetImage('assets/driver.png'),
+                      ),
+                    ),
+                    SizedBox(
+                      width: constraints.maxWidth * 0.05,
+                    ),
+                    SizedBox(
+                      width: constraints.maxWidth * 0.55,
+                      height: constraints.maxHeight,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Tu chofer",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: Colors.white),
+                          ),
+                          Text(
+                            "Nombre del Chofer",
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Expanded(
-                    child: CircleAvatar(
-                        radius: 22,
-                        backgroundImage: NetworkImage(
-                            "https://static.wikia.nocookie.net/logopedia/images/3/3a/1024x1024bb.jpg"))),
-                Expanded(
-                  flex: 4,
-                  child: Column(
-                    //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const Expanded(
-                        flex: 4,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Column(
-                            children: [
-                              Text(
-                                "Unidad: Nissan Tida",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 12,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.white),
-                                textAlign: TextAlign.justify,
-                              ),
-                              Text(
-                                "Modelo: 2015",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 12,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.white),
-                                textAlign: TextAlign.justify,
-                              ),
-                              Text(
-                                "Placas: N908YA",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 12,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.white),
-                                textAlign: TextAlign.justify,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                          flex: 1,
-                          child: RatingBar.builder(
-                            initialRating: 3,
-                            minRating: 1,
-                            direction: Axis.horizontal,
-                            allowHalfRating: true,
-                            itemSize: 25,
-                            itemCount: 5,
-                            itemPadding:
-                                const EdgeInsets.symmetric(horizontal: 4.0),
-                            itemBuilder: (context, _) => const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                            ),
-                            onRatingUpdate: (rating) {},
-                          ))
-                    ],
+              SizedBox(
+                height: constraints.maxHeight * 0.05,
+              ),
+              SizedBox(
+                width: constraints.maxWidth * 0.75,
+                height: constraints.maxHeight * 0.25,
+                child: const Center(
+                  child: Text(
+                    "El chofer asignado llegará en breve.",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.white),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
+    );
+  }
+}
+
+class TipoViajeBoton extends StatelessWidget {
+  final String texto;
+  final IconData icono;
+  const TipoViajeBoton(
+      {super.key, required this.texto, required this.icono});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundColor: Colors.white,
+          radius: 30,
+          child: Icon(icono, color: Colors.black, size: 30),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          texto,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+        )
+      ],
     );
   }
 }

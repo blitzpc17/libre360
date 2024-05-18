@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:taxi_app/screens/screens.dart';
 
 class MapaScreen extends StatefulWidget {
   static String name = "mapa_screen";
@@ -14,75 +16,105 @@ class MapaScreen extends StatefulWidget {
 
 class _MapaScreenState extends State<MapaScreen> {
   final Completer<GoogleMapController> _controller = Completer();
-  Position? _currentPosition;
-  final LatLng _posicionInicial = LatLng(18.4624477, -97.3953397);
+  LatLng? _currentPosition;
+  LatLng? _origenPosition;
+  StreamSubscription<Position>? _positionStream;
 
-  static const CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(18.4624477, -97.3953397), // Cambiar por la ubicación del usuario
+  final LatLng _initialPosition = LatLng(18.4624477, -97.3953397);
+  static const CameraPosition _initialCameraPosition = CameraPosition(
+    target: LatLng(18.4624477, -97.3953397),
     zoom: 14,
   );
-
-  final List<Marker> myMarker = [];
-  final List<Marker> markerList = [
-    const Marker(
-      markerId: MarkerId('First'),
-      position: LatLng(18.4624477, -97.3953397),
-      infoWindow: InfoWindow(title: "Parque Juarez"),
-    ),
-    const Marker(
-      markerId: MarkerId('Second'),
-      position: LatLng(18.4658727, -97.3985141),
-      infoWindow: InfoWindow(title: "SSA"),
-    ),
-  ];
 
   @override
   void initState() {
     super.initState();
-    myMarker.addAll(markerList);
     _getCurrentLocation(); // Obtener la ubicación actual al iniciar
   }
 
   Future<void> _getCurrentLocation() async {
     if (await Permission.location.request().isGranted) {
-      _currentPosition = await Geolocator.getCurrentPosition(
+      Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      setState(() {});
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+      });
+
       final GoogleMapController controller = await _controller.future;
       controller.animateCamera(CameraUpdate.newLatLng(
-          LatLng(_currentPosition!.latitude, _currentPosition!.longitude)));
+        LatLng(position.latitude, position.longitude),
+      ));
     }
+  }
+
+  Future<void> _moveCameraToCurrentPosition() async {
+    if (_currentPosition != null) {
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newLatLng(
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+      ));
+    }
+  }
+
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: GoogleMap(
-          initialCameraPosition: _initialPosition,
-          mapType: MapType.normal,
-          markers: Set<Marker>.of(myMarker),
-          onMapCreated: (GoogleMapController controller) {
-            _controller.complete(controller);
-          },
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-        ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: _initialCameraPosition,
+            mapType: MapType.normal,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+            },
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onCameraMove: (CameraPosition position) {
+              setState(() {
+                _currentPosition = position.target;
+              });
+            },
+          ),
+          const Center(
+            child: Icon(
+              Icons.location_pin,
+              size: 50.0,
+              color: Colors.red,
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.location_searching),
-        onPressed: () async {
-          if (_currentPosition != null) {
-            final GoogleMapController controller = await _controller.future;
-            controller.animateCamera(CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-                zoom: 14,
-              ),
-            ));
-            setState(() {});
-          }
-        },
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            child: const Icon(Icons.my_location),
+            onPressed: () {
+              _getCurrentLocation(); // Mover el mapa a la ubicación actual
+            },
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            child: const Icon(Icons.check),
+            onPressed: () {
+              if (_currentPosition != null) {
+                // Realizar la acción deseada con la ubicación seleccionada
+                print('Ubicación seleccionada: $_currentPosition');
+                _origenPosition = _currentPosition;
+                context.pushNamed(
+                  SolicitarViajeScreen.name,
+                  extra: _origenPosition
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }

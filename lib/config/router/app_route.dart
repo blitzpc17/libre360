@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_app/screens/screens.dart';
 
 final appRouter = GoRouter(routes: [
@@ -25,7 +26,10 @@ final appRouter = GoRouter(routes: [
   GoRoute(
       path: '/solicitudviaje',
       name: SolicitarViajeScreen.name,
-      builder: (context, state) => const SolicitarViajeScreen()),
+      builder: (context, state) {
+        final initialLovation = state.extra as LatLng?;
+        return SolicitarViajeScreen(initialLocation: initialLovation);
+      }),
   GoRoute(
       path: '/seleccionubicacion',
       name: SeleccionUbicacionScreen.name,
