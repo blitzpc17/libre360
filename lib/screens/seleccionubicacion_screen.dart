@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taxi_app/screens/screens.dart';
 
@@ -11,9 +12,10 @@ import 'package:uuid/uuid.dart';
 
 class SeleccionUbicacionScreen extends StatefulWidget {
   final String textoTitulo;
+  final bool origen;
   static String name = "seleccionubicacion_screen";
 
-  SeleccionUbicacionScreen({super.key, required this.textoTitulo});
+  const SeleccionUbicacionScreen({super.key, required this.textoTitulo, required this.origen});
 
   @override
   State<SeleccionUbicacionScreen> createState() =>
@@ -75,19 +77,22 @@ class _SeleccionUbicacionScreenState extends State<SeleccionUbicacionScreen> {
     return SafeArea(
       child: Scaffold(
         body: SafeArea(
-          child: Container(
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.10,
-                    child: LayoutBuilder(
-                      builder: (context, constraints1) {
-                        return Row(
-                          children: [
-                            Container(
+          child: LayoutBuilder(builder: (context, constraints) {
+            return Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight * 0.10,
+                  child: LayoutBuilder(
+                    builder: (context, constraints1) {
+                      return Row(
+                        children: [
+                          GestureDetector(
+                            onTap: (){
+                              context.pop('/solicitudviaje');
+                            },
+                            child: Container(
                               height: constraints1.maxHeight,
                               width: constraints1.maxWidth * 0.15,
                               decoration: BoxDecoration(
@@ -100,134 +105,134 @@ class _SeleccionUbicacionScreenState extends State<SeleccionUbicacionScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              width: constraints1.maxWidth * 0.05,
-                            ),
-                            SizedBox(
-                              height: constraints1.maxHeight,
-                              width: constraints1.maxWidth * 0.70,
-                              child: Align(
-                                alignment: AlignmentDirectional.topStart,
-                                child: Text(
-                                  widget.textoTitulo,
-                                  maxLines: 2,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 18),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  Container(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.0005,
-                    color: Colors.black54,
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 15, vertical: viajeEncontrado ? 10 : 5),
-                    width: constraints.maxWidth,
-                    height: viajeEncontrado
-                        ? ((constraints.maxHeight * 0.80) +
-                            constraints.maxHeight * 0.098)
-                        : constraints.maxHeight * 0.80,
-                    child: LayoutBuilder(builder: (context, constraints5) {
-                     /* List<Map<String, dynamic>> s = [
-                        {
-                          "ubicacion": "Av. Reforma",
-                          "ubicacionCompleta":
-                              "Av. Reforma Centro #90, Tehuacán Pue."
-                        },
-                        {
-                          "ubicacion": "Av. Reforma",
-                          "ubicacionCompleta":
-                              "Av. Reforma Centro #90, Tehuacán Pue."
-                        }
-                      ];*/
-
-                      listPlaces;
-
-                      return Stack(children: [
-                        Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: constraints5.maxHeight * 0.10),
-                            width: constraints.maxWidth,
-                            height: constraints5.maxHeight,
-                            child: ListView.builder(
-                              itemCount: listPlaces.length,
-                              itemBuilder: (context, index) {
-                                //print(listPlaces[index]);
-                                return ListTile(
-                                  onTap: () async {
-                                    //aqui poner codigfo para asignar la ubicacion seleccionada
-                                  },
-                                  leading: const FaIcon(FontAwesomeIcons.locationPin),
-                                  title: Text('${listPlaces[index]["description"]}'),
-                                  subtitle:null,
-                                  //trailing: const FaIcon(FontAwesomeIcons.clockRotateLeft),
-                                );
-                              },
-                            )),
-                        SizedBox(
-                          width: constraints5.maxWidth,
-                          height: constraints5.maxHeight * 0.10,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                flex: 12,
-                                child: CajaTextoPersonalizada(
-                                  label: "Dirección de destino",
-                                  hint: "Dirección de destino",
-                                  iconoPrefix: FontAwesomeIcons.locationDot,
-                                  icono: FontAwesomeIcons.locationDot,
-                                  controller: _controller,
-                                  onChanged: makeSuggestion,
-                                ),
-                              ),
-                              Expanded(
-                                  child: GestureDetector(
-                                onTap: () {},
-                                child: const Center(
-                                  child: FaIcon(FontAwesomeIcons.circleXmark),
-                                ),
-                              ))
-                            ],
                           ),
-                        )
-                      ]);
-                    }),
+                          SizedBox(
+                            width: constraints1.maxWidth * 0.05,
+                          ),
+                          SizedBox(
+                            height: constraints1.maxHeight,
+                            width: constraints1.maxWidth * 0.70,
+                            child: Align(
+                              alignment: AlignmentDirectional.topStart,
+                              child: Text(
+                                widget.textoTitulo,
+                                maxLines: 2,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-                      width: constraints.maxWidth,
-                      height: constraints.maxHeight * 0.098,
-                      child: LayoutBuilder(
-                        builder: (context, constraints12) {
-                          return BotonPersonalizado(
-                              ancho: constraints12.maxWidth * 0.10,
-                              alto: constraints12.maxHeight * 0.35,
-                              color: Colors.black,
-                              icono: FontAwesomeIcons.mapLocationDot,
-                              anchoIconos: 0.10,
-                              altoIconos: 0.75,
-                              deshabFondoIconos: true,
-                              colorIconos: Colors.grey,
-                              texto: "Seleccionar del mapa",
-                              onChanged: () {
-                                //Aqui se mostrará el mapa
-                                context.pushNamed(MapaScreen.name);
-                              });
-                        },
-                      ))
-                ],
-              );
-            }),
-          ),
+                ),
+                Container(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight * 0.0005,
+                  color: Colors.black54,
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 15, vertical: viajeEncontrado ? 10 : 5),
+                  width: constraints.maxWidth,
+                  height: viajeEncontrado
+                      ? ((constraints.maxHeight * 0.80) +
+                          constraints.maxHeight * 0.098)
+                      : constraints.maxHeight * 0.80,
+                  child: LayoutBuilder(builder: (context, constraints5) {
+                   /* List<Map<String, dynamic>> s = [
+                      {
+                        "ubicacion": "Av. Reforma",
+                        "ubicacionCompleta":
+                            "Av. Reforma Centro #90, Tehuacán Pue."
+                      },
+                      {
+                        "ubicacion": "Av. Reforma",
+                        "ubicacionCompleta":
+                            "Av. Reforma Centro #90, Tehuacán Pue."
+                      }
+                    ];*/
+          
+                    listPlaces;
+          
+                    return Stack(children: [
+                      Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: constraints5.maxHeight * 0.10),
+                          width: constraints.maxWidth,
+                          height: constraints5.maxHeight,
+                          child: ListView.builder(
+                            itemCount: listPlaces.length,
+                            itemBuilder: (context, index) {
+                              //print(listPlaces[index]);
+                              return ListTile(
+                                onTap: () async {
+                                  //aqui poner codigfo para asignar la ubicacion seleccionada
+                                },
+                                leading: const FaIcon(FontAwesomeIcons.locationPin),
+                                title: Text('${listPlaces[index]["description"]}'),
+                                subtitle:null,
+                                //trailing: const FaIcon(FontAwesomeIcons.clockRotateLeft),
+                              );
+                            },
+                          )),
+                      SizedBox(
+                        width: constraints5.maxWidth,
+                        height: constraints5.maxHeight * 0.10,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              flex: 12,
+                              child: CajaTextoPersonalizada(
+                                label: "Dirección de destino",
+                                hint: "Dirección de destino",
+                                iconoPrefix: FontAwesomeIcons.locationDot,
+                                icono: FontAwesomeIcons.locationDot,
+                                controller: _controller,
+                                onChanged: makeSuggestion,
+                              ),
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                              onTap: () {},
+                              child: const Center(
+                                child: FaIcon(FontAwesomeIcons.circleXmark),
+                              ),
+                            ))
+                          ],
+                        ),
+                      )
+                    ]);
+                  }),
+                ),
+                Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight * 0.098,
+                    child: LayoutBuilder(
+                      builder: (context, constraints12) {
+                        return BotonPersonalizado(
+                            ancho: constraints12.maxWidth * 0.10,
+                            alto: constraints12.maxHeight * 0.35,
+                            color: Colors.black,
+                            icono: FontAwesomeIcons.mapLocationDot,
+                            anchoIconos: 0.10,
+                            altoIconos: 0.75,
+                            deshabFondoIconos: true,
+                            colorIconos: Colors.grey,
+                            texto: "Seleccionar del mapa",
+                            onChanged: () {
+                              //Aqui se mostrará el mapa
+                              context.pushNamed(MapaScreen.name, extra: widget.origen);
+                            });
+                      },
+                    ))
+              ],
+            );
+          }),
         ),
       ),
     );

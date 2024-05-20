@@ -1,14 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:taxi_app/Services/services.dart';
+import 'package:taxi_app/modelo/models.dart';
 import 'package:taxi_app/screens/screens.dart';
 
 class MapaScreen extends StatefulWidget {
   static String name = "mapa_screen";
-  const MapaScreen({super.key});
+  final bool origen;
+
+  const MapaScreen({super.key, required this.origen});
 
   @override
   State<MapaScreen> createState() => _MapaScreenState();
@@ -64,6 +70,9 @@ class _MapaScreenState extends State<MapaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
+    final viajeService = Provider.of<ViajeService>(context); 
+
     return Scaffold(
       body: Stack(
         children: [
@@ -102,14 +111,22 @@ class _MapaScreenState extends State<MapaScreen> {
           const SizedBox(height: 10),
           FloatingActionButton(
             child: const Icon(Icons.check),
-            onPressed: () {
+            onPressed: () async{
               if (_currentPosition != null) {
                 // Realizar la acción deseada con la ubicación seleccionada
                 print('Ubicación seleccionada: $_currentPosition');
                 _origenPosition = _currentPosition;
+
+                Ruta? coordenadas = await viajeService.obtenerRutaViaje();
+
+                Ruta? coordenadasAux = Ruta(origen: widget.origen?_origenPosition:coordenadas?.origen, destino: !widget.origen?_origenPosition:coordenadas?.destino);
+
+            
+                 viajeService.saveRutaViaje( coordenadasAux);
+
                 context.pushNamed(
                   SolicitarViajeScreen.name,
-                  extra: _origenPosition
+                //  extra: {'posicion': _origenPosition, 'origen':widget.origen}
                 );
               }
             },

@@ -1,11 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:ui' as ui;
+import 'package:http/http.dart' as http;
 
+import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:provider/provider.dart';
+import 'package:taxi_app/Services/services.dart';
+import 'package:taxi_app/modelo/models.dart';
 import 'package:taxi_app/screens/screens.dart';
 
 import '../widgets/widgets.dart';
@@ -15,9 +22,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class SolicitarViajeScreen extends StatefulWidget {
   
   static String name = "solicitudviaje_screen";
-  final LatLng? initialLocation;
 
-  const SolicitarViajeScreen({super.key, this.initialLocation});
+  const SolicitarViajeScreen({super.key, /* this.coordenada,required this.origen*/});
 
   @override
   State<SolicitarViajeScreen> createState() => _SolicitarViajeScreenState();
@@ -28,33 +34,165 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   var editando = false;
   var viajeEncontrado = false;
   late Size _pantalla;
+  LatLng? initialLocation;
+  LatLng? finalLocation;
   final Completer<GoogleMapController> _controller = Completer();
   String? _Nombreorigen = "Seleccione el lugar de origen.";
+  String? _NombreDestino = "Seleccione el lugar de destino.";
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
-    zoom: 14,
+    zoom: 16,
   );
+
+  List<String> images = [
+    'assets/origen.png',
+    'assets/llegada.png'
+  ];
+
+  final List<Marker> myMarkers = [];
+
+   Set<Polyline> _polylines = {};
 
   @override
   void initState() {
     super.initState();
-    if(widget.initialLocation!=null){
-      _getAddressFromLatLng(LatLng(widget.initialLocation!.latitude, widget.initialLocation!.longitude) );
-    }
+
+     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Asegúrate de que el contexto esté disponible
+      Ruta? ruta = await Provider.of<ViajeService>(context, listen: false).obtenerRutaViaje();
+
+       if(ruta!=null){
+          initialLocation = ruta.origen;
+          finalLocation = ruta.destino;
+        }
+       
+
+        if(initialLocation!=null ){
+          _getAddressFromLatLng(LatLng(initialLocation!.latitude, initialLocation!.longitude), true );
+        }
+
+         if(finalLocation!=null ){
+          _getAddressFromLatLng(LatLng(finalLocation!.latitude, finalLocation!.longitude), false );
+        }
+
+        if(initialLocation!=null && finalLocation!=null){
+          _TrazarRuta(initialLocation as LatLng, finalLocation as LatLng);
+        }
+    });
+
+  }
+
+  Future<void> _setPolyline(LatLng origen, LatLng destino) async{
+
+    final response = await http.get(Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${origen.latitude},${origen.longitude}&destination=${destino.latitude},${destino.longitude}&key=AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final points = data['routes'][0]['overview_polyline']['points'];
+       List<LatLng> polylineCoordinates = _decodePolyline(points);
+
+       setState(() {
+           _polylines.add(Polyline(
+        polylineId: PolylineId('Ruta previa del viaje'),
+        points: polylineCoordinates,
+        color: Colors.blue,
+        width: 5,
+      ));
+       });
+      
+    } else {
+      throw Exception('Failed to load directions');
+    } 
     
   }
 
-  Future<void> _getAddressFromLatLng(LatLng position) async {
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> polylineCoordinates = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1F) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1F) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
+
+      polylineCoordinates.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+    return polylineCoordinates;
+  }
+
+  Future<Uint8List> getImagesFromMarkers(String path, int width) async {
+    print(path);
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetHeight: width);
+
+    ui.FrameInfo frameInfo = await codec.getNextFrame();
+    return (await frameInfo.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
+  }
+
+  Future<void> _TrazarRuta(LatLng origen, LatLng destino) async{
+
+    final Uint8List iconMarkerOrigen =  await  getImagesFromMarkers(images[0], 90);
+    final Uint8List iconMarkerDestino =  await  getImagesFromMarkers(images[1], 90);
+
+    myMarkers.add(
+      Marker(
+        markerId: const MarkerId("origen"),
+        position: origen,
+        icon: BitmapDescriptor.fromBytes(iconMarkerOrigen),
+        infoWindow: const InfoWindow(
+          title: "¡Te encuentras aquí!"
+        )
+      )
+    );
+
+     myMarkers.add(
+      Marker(
+        markerId: const MarkerId("destino"),
+        position: destino,
+        icon: BitmapDescriptor.fromBytes(iconMarkerDestino),
+        infoWindow: const InfoWindow(
+          title: "¡Tu destino!"
+        )
+      )
+    );
+
+    _setPolyline(origen, destino);
+
+  }
+
+  Future<void> _getAddressFromLatLng(LatLng position, bool origen) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
           position.latitude, position.longitude);
       Placemark place = placemarks[0];
 
       setState(() {
-        print(place);
-        _Nombreorigen =
-            "${place.name} ${place.street}, ${place.postalCode}, ${place.locality}";
+        if(origen){
+          _Nombreorigen =
+            "${place.street}, ${place.postalCode}, ${place.locality}";
+        }else{
+          _NombreDestino =
+            "${place.street}, ${place.postalCode}, ${place.locality}";
+        }
+       
       });
     } catch (e) {
       print(e);
@@ -87,6 +225,8 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
+              markers: Set<Marker>.of(myMarkers),
+              polylines: _polylines,
             ),
             SafeArea(
               child: Container(
@@ -147,20 +287,9 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                         iconoAux:
                                             FontAwesomeIcons.shareFromSquare,
                                         onChanged: () async {
-                                          final result = await context.pushNamed(
+                                          await context.pushNamed(
                                               SeleccionUbicacionScreen.name,
-                                              extra: "Ubicación origen");
-                                          if (result != null) {
-                                            print("------------------------------------");
- 
-                                            print("==============================");
- 
-                                            print(result);
-                                            
-                                            print("========================================");
-                                            //_getAddressFromLatLng(result);
-                                          }
-                                          print("el perro boto: $result");
+                                              extra: {"textoTitulo":"Indicanos tu ubicación de partida.", 'origen':true});
                                         }),
                                     SizedBox(
                                       height: constraints11.maxHeight * 0.05,
@@ -177,8 +306,12 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                         iconoAux:
                                             FontAwesomeIcons.shareFromSquare,
                                         texto:
-                                            "Selecciona dirección de destino",
-                                        onChanged: null)
+                                            _NombreDestino,
+                                        onChanged: ()async {
+                                           await context.pushNamed(
+                                              SeleccionUbicacionScreen.name,
+                                              extra: {"textoTitulo":"Indicanos tu ubicación de destino.", 'origen':false});       
+                                        })
                                   ],
                                 );
                               }),
@@ -214,7 +347,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                   alto: constraints12.maxHeight * 0.35,
                                   color: Colors.black,
                                   icono: FontAwesomeIcons.circleCheck,
-                                  texto: "Pedir viaje",
+                                  texto: "Solicitar viaje",
                                   onChanged: () async =>
                                       //_mostrarAlertaBuscandoChofer(),
                                       await _mostrarAlertaCalificarViaje());
@@ -227,18 +360,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
             )
           ],
         ),
-        floatingActionButton: Container(
-          margin: const EdgeInsets.only(bottom: 200),
-          child: FloatingActionButton(
-              child: const Icon(Icons.location_searching),
-              onPressed: () async {
-                GoogleMapController controller = await _controller.future;
-                controller.animateCamera(CameraUpdate.newCameraPosition(
-                    const CameraPosition(
-                        target: LatLng(18.4624477, -97.3953397), zoom: 14)));
-                setState(() {});
-              }),
-        ),
+      
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_app/modelo/models.dart';
 import 'package:taxi_app/providers/login_form_provider.dart';
+import 'package:taxi_app/screens/register_screen.dart';
 
 import '../Services/services.dart';
 import '../widgets/widgets.dart';
@@ -164,7 +165,7 @@ class _LoginForm extends StatelessWidget {
                               ),
                               GestureDetector(
                                 onTap:(){
-                                    context.pushNamed('/regiter');
+                                    context.pushNamed(RegisterScreen.name);
                                 } ,                                       
                                 child: const Text(
                                   "Registrate",
