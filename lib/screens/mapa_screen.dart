@@ -26,7 +26,7 @@ class _MapaScreenState extends State<MapaScreen> {
   LatLng? _origenPosition;
   StreamSubscription<Position>? _positionStream;
 
-  final LatLng _initialPosition = LatLng(18.4624477, -97.3953397);
+
   static const CameraPosition _initialCameraPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
     zoom: 14,
@@ -43,7 +43,7 @@ class _MapaScreenState extends State<MapaScreen> {
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       setState(() {
-        _currentPosition = LatLng(position.latitude, position.longitude);
+         _currentPosition = LatLng(position.latitude, position.longitude);        
       });
 
       final GoogleMapController controller = await _controller.future;
@@ -52,7 +52,7 @@ class _MapaScreenState extends State<MapaScreen> {
       ));
     }
   }
-
+/*
   Future<void> _moveCameraToCurrentPosition() async {
     if (_currentPosition != null) {
       final GoogleMapController controller = await _controller.future;
@@ -60,7 +60,7 @@ class _MapaScreenState extends State<MapaScreen> {
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
       ));
     }
-  }
+  }*/
 
   @override
   void dispose() {

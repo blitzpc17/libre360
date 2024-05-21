@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_app/Services/services.dart';
 import 'package:taxi_app/modelo/models.dart';
@@ -23,7 +25,7 @@ class SolicitarViajeScreen extends StatefulWidget {
   
   static String name = "solicitudviaje_screen";
 
-  const SolicitarViajeScreen({super.key, /* this.coordenada,required this.origen*/});
+  const SolicitarViajeScreen({super.key});
 
   @override
   State<SolicitarViajeScreen> createState() => _SolicitarViajeScreenState();
@@ -37,12 +39,13 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   LatLng? initialLocation;
   LatLng? finalLocation;
   final Completer<GoogleMapController> _controller = Completer();
-  String? _Nombreorigen = "Seleccione el lugar de origen.";
-  String? _NombreDestino = "Seleccione el lugar de destino.";
+  String? nombreorigen = "Seleccione el lugar de origen.";
+  String? nombreDestino = "Seleccione el lugar de destino.";
+  LatLng? _currentPosition;
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
-    zoom: 16,
+    zoom: 14,
   );
 
   List<String> images = [
@@ -52,21 +55,22 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
 
   final List<Marker> myMarkers = [];
 
-   Set<Polyline> _polylines = {};
+   Set<Polyline> polylines = {};
 
   @override
   void initState() {
     super.initState();
 
-     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Asegúrate de que el contexto esté disponible
+      _getCurrentLocation(); 
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+
       Ruta? ruta = await Provider.of<ViajeService>(context, listen: false).obtenerRutaViaje();
 
-       if(ruta!=null){
+        if(ruta!=null){
           initialLocation = ruta.origen;
           finalLocation = ruta.destino;
-        }
-       
+        }       
 
         if(initialLocation!=null ){
           _getAddressFromLatLng(LatLng(initialLocation!.latitude, initialLocation!.longitude), true );
@@ -79,8 +83,24 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
         if(initialLocation!=null && finalLocation!=null){
           _TrazarRuta(initialLocation as LatLng, finalLocation as LatLng);
         }
+
     });
 
+  }
+
+   Future<void> _getCurrentLocation() async {
+    if (await Permission.location.request().isGranted) {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+         _currentPosition = LatLng(position.latitude, position.longitude);        
+      });
+
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newLatLng(
+        LatLng(position.latitude, position.longitude),
+      ));
+    }
   }
 
   Future<void> _setPolyline(LatLng origen, LatLng destino) async{
@@ -94,12 +114,12 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
        List<LatLng> polylineCoordinates = _decodePolyline(points);
 
        setState(() {
-           _polylines.add(Polyline(
-        polylineId: PolylineId('Ruta previa del viaje'),
-        points: polylineCoordinates,
-        color: Colors.blue,
-        width: 5,
-      ));
+        polylines.add(Polyline(
+          polylineId: const PolylineId('Ruta del viaje'),
+          points: polylineCoordinates,
+          color: Colors.blue,
+          width: 5,
+        ));
        });
       
     } else {
@@ -186,10 +206,10 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
 
       setState(() {
         if(origen){
-          _Nombreorigen =
+          nombreorigen =
             "${place.street}, ${place.postalCode}, ${place.locality}";
         }else{
-          _NombreDestino =
+          nombreDestino =
             "${place.street}, ${place.postalCode}, ${place.locality}";
         }
        
@@ -226,7 +246,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                 _controller.complete(controller);
               },
               markers: Set<Marker>.of(myMarkers),
-              polylines: _polylines,
+              polylines: polylines,
             ),
             SafeArea(
               child: Container(
@@ -283,7 +303,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                         colorIconos: Colors.grey,
                                         icono: FontAwesomeIcons.locationDot,
                                         texto:
-                                            _Nombreorigen, //"Selecciona dirección de origen",
+                                            nombreorigen, //"Selecciona dirección de origen",
                                         iconoAux:
                                             FontAwesomeIcons.shareFromSquare,
                                         onChanged: () async {
@@ -306,7 +326,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                         iconoAux:
                                             FontAwesomeIcons.shareFromSquare,
                                         texto:
-                                            _NombreDestino,
+                                            nombreDestino,
                                         onChanged: ()async {
                                            await context.pushNamed(
                                               SeleccionUbicacionScreen.name,
