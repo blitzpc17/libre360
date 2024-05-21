@@ -19,25 +19,9 @@ class UsuarioService extends ChangeNotifier{
 
 
   UsuarioService(){
-   /* objUsuarioSesion = new Usuario(   
-      nombres: "", 
-      apellidos: "", 
-      email: "", 
-      password: "", 
-      telefono: "", 
-      rol: "", 
-      fechaalta: new DateTime.now(), 
-      activo: "N", 
-      fechabaja: "", 
-      placa: "", 
-      modelo: "", 
-      color: "", 
-      marca: "",
-      domicilio: "",
-      id: null, 
-    );*/
 
     obtenerDataStorageUsuario();
+
   }
 
 
@@ -164,7 +148,28 @@ class UsuarioService extends ChangeNotifier{
 
   Future<void> obtenerDataStorageUsuario() async {
     final String user = await storage.read(key: 'objUsuario')??"";
-    objUsuarioSesion = Usuario.fromJson(user);
+    if(user==''){
+      objUsuarioSesion = new Usuario(   
+        nombres: "", 
+        apellidos: "", 
+        email: "", 
+        password: "", 
+        telefono: "", 
+        rol: "", 
+        fechaalta: new DateTime.now(), 
+        activo: "N", 
+        fechabaja: "", 
+        placa: "", 
+        modelo: "", 
+        color: "", 
+        marca: "",
+        domicilio: "",
+        id: null, 
+      );
+    }else{
+      objUsuarioSesion = Usuario.fromJson(user);
+    }
+  
   }
 
   Future<String> validarSessionExpiro() async {
