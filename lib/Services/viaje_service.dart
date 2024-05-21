@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../modelo/models.dart';
 import 'package:http/http.dart' as http;
 
@@ -56,7 +57,7 @@ Future<void>saveRutaViaje( Ruta data)async {
     notifyListeners();
 
     if(viaje.id == null){
-      await createUsuario(viaje);
+      await createViaje(viaje);
     }else{
       //update
     }
@@ -66,7 +67,7 @@ Future<void>saveRutaViaje( Ruta data)async {
   }
 
 
-  Future<String>createUsuario(Viaje viaje) async{
+  Future<String>createViaje(Viaje viaje) async{
     
         final tokenCrud = storage.read(key: 'token');
         final url = Uri.https( _baseUrl, 'viajes.json',{
@@ -80,11 +81,9 @@ Future<void>saveRutaViaje( Ruta data)async {
         viajeCurso = viaje;
         await storage.write(key: 'viajecurso', value: viaje.toJson());
         return viaje.id!;
-
-
-   
-
   }
+
+ 
 
 
 

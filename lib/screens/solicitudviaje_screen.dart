@@ -42,6 +42,8 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   String? nombreorigen = "Seleccione el lugar de origen.";
   String? nombreDestino = "Seleccione el lugar de destino.";
   LatLng? _currentPosition;
+  final String _apiKey = "AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
+  double? _tarifa;
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -106,12 +108,13 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   Future<void> _setPolyline(LatLng origen, LatLng destino) async{
 
     final response = await http.get(Uri.parse(
-        'https://maps.googleapis.com/maps/api/directions/json?origin=${origen.latitude},${origen.longitude}&destination=${destino.latitude},${destino.longitude}&key=AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM'));
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${origen.latitude},${origen.longitude}&destination=${destino.latitude},${destino.longitude}&key=${_apiKey}'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final points = data['routes'][0]['overview_polyline']['points'];
-       List<LatLng> polylineCoordinates = _decodePolyline(points);
+      List<LatLng> polylineCoordinates = _decodePolyline(points);
+      await _calcularTarifa(origen, destino);
 
        setState(() {
         polylines.add(Polyline(
@@ -119,13 +122,43 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
           points: polylineCoordinates,
           color: Colors.blue,
           width: 5,
-        ));
+        )); 
+
+        print(_tarifa);       
        });
       
     } else {
       throw Exception('Failed to load directions');
     } 
     
+  }
+
+   Future<void>_calcularTarifa(LatLng origen, LatLng destino)async {
+    final url = Uri.https('maps.googleapis.com', '/maps/api/directions/json', {
+      'origin': '${origen.latitude},${origen.longitude}',
+      'destination': '${destino.latitude},${destino.longitude}',
+      'key': _apiKey,
+    });
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      double _distancia;
+      final decodedResponse = json.decode(response.body);
+      final distancia = decodedResponse['routes'][0]['legs'][0]['distance']['value'];
+      _distancia =  distancia.toDouble() / 1000; // Convertir a kilómetros
+      const double precioBase = 60.00;
+      
+      if(_distancia>1){
+        final double calculoKmExtra = (_distancia - 1) * 14.00;
+        _tarifa = calculoKmExtra + precioBase;
+      }else{
+        _tarifa = precioBase;
+      }
+
+    } else {
+      throw Exception('Error al calcular la distancia');
+    }
   }
 
   List<LatLng> _decodePolyline(String encoded) {
@@ -336,7 +369,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                 );
                               }),
                             ),
-                           /* Align(
+                            Align(
                               alignment: Alignment.bottomCenter,
                               child: SizedBox(
                                 width: constraints5.maxWidth * 0.75,
@@ -346,10 +379,11 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                         ancho: constraints5.maxWidth * 0.60,
                                         alto: constraints5.maxHeight * 0.32)
                                     : _TarjetaTipoViaje(
+                                       costo:  (_tarifa ?? 0).toStringAsFixed(2),
                                         ancho: constraints5.maxWidth * 0.60,
                                         alto: constraints5.maxHeight * 0.25),
                               ),
-                            )*/
+                            )
                           ]);
                         }),
                       ),
@@ -369,9 +403,9 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                   icono: FontAwesomeIcons.circleCheck,
                                   texto: "Solicitar viaje",
                                   onChanged: () async =>
-                                      //_mostrarAlertaBuscandoChofer(),
+                                    // await _mostrarAlertaBuscandoChofer());
                                       await _mostrarAlertaCalificarViaje());
-                            },
+                          },
                           ))
                     ],
                   );
@@ -517,57 +551,70 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
 class _TarjetaTipoViaje extends StatelessWidget {
   final double ancho;
   final double alto;
-  final String nombreOrigen;
-  const _TarjetaTipoViaje({super.key, required this.ancho, required this.alto, required this.nombreOrigen});
+  final String costo;
+
+  const _TarjetaTipoViaje({required this.ancho, required this.alto, required this.costo});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: ancho,
       height: alto,
-      decoration: const BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: <Color>[Colors.black, Colors.black38],
-        ),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: const Offset(0, 3), // changes position of shadow
+          ),
+        ],
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SizedBox(
-                width: constraints.maxWidth,
-                height: constraints.maxHeight * 0.15,
-                child: Center(
-                  child: Text(
-                    nombreOrigen,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.white),
+      child: Column(
+        children: [
+        
+          Expanded(
+            flex: 4,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const Expanded(
+                    child: CircleAvatar(
+                  radius: 22,
+                  backgroundImage:
+                      AssetImage("assets/imgbackgrounds/bg_solicitarviaje.png"),
+                )),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Viaje Estándar",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 12),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "\$ ${costo}",
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              SizedBox(
-                width: constraints.maxWidth * 0.75,
-                height: constraints.maxHeight * 0.55,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: const [
-                    TipoViajeBoton(texto: "Normal", icono: FontAwesomeIcons.car),
-                    TipoViajeBoton(
-                        texto: "Compartido",
-                        icono: FontAwesomeIcons.peopleGroup)
-                  ],
-                ),
-              )
-            ],
-          );
-        },
+                
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
