@@ -17,13 +17,13 @@ class CheckAuthScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: FutureBuilder(
-          future: authService.readToken(),
+          future: authService.validarSessionExpiro(),  // .readToken(), //Future<String>
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
             
             if ( !snapshot.hasData )            
               return Text('');
 
-            if ( snapshot.data == '' ) {
+            if ( snapshot.data != '' ) {
               Future.microtask(() {
                 context.pushReplacementNamed(LoginScreen.name);
               });

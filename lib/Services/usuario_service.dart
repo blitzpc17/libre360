@@ -19,7 +19,7 @@ class UsuarioService extends ChangeNotifier{
 
 
   UsuarioService(){
-    objUsuarioSesion = new Usuario(   
+   /* objUsuarioSesion = new Usuario(   
       nombres: "", 
       apellidos: "", 
       email: "", 
@@ -35,7 +35,9 @@ class UsuarioService extends ChangeNotifier{
       marca: "",
       domicilio: "",
       id: null, 
-    );
+    );*/
+
+    obtenerDataStorageUsuario();
   }
 
 
@@ -163,6 +165,31 @@ class UsuarioService extends ChangeNotifier{
   Future<void> obtenerDataStorageUsuario() async {
     final String user = await storage.read(key: 'objUsuario')??"";
     objUsuarioSesion = Usuario.fromJson(user);
+  }
+
+  Future<String> validarSessionExpiro() async {
+    final url = Uri.https(_baseUrlAuth, '/v1/accounts:lookup',{
+      'key':_firebaseToken
+    });
+
+    String? tokenUser = await storage.read(key: "token");
+
+    if(tokenUser!=null){
+
+      final Map<String, dynamic> data ={
+          "idToken":tokenUser
+      };
+
+      final resp = await http.post(url, body:json.encode(data));
+      final Map<String,dynamic>decodedResp = json.decode(resp.body);
+
+      if(decodedResp.containsKey('users')){
+        return "";
+      }
+
+    }  
+
+    return "Tu sesión ha expirado.";
   }
 
 

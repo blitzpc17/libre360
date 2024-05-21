@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:taxi_app/modelo/models.dart';
 
 class UsuarioFormProvider extends ChangeNotifier{
 

@@ -11,9 +11,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var pantalla = MediaQuery.of(context).size;
 
-       final usuarioService = Provider.of<UsuarioService>(context, listen:false);   
+    final usuarioService = Provider.of<UsuarioService>(context, listen:false);   
 
     return SafeArea(
       child: Scaffold(
