@@ -137,6 +137,9 @@ class UsuarioService extends ChangeNotifier{
   Future logout() async {
     await storage.delete(key: 'token');
     await storage.delete(key: 'ruta');
+    await storage.delete(key: 'token');
+    await storage.delete(key: 'viajecurso');
+    await storage.delete(key: 'objUsuario');
     return;
   }
 
@@ -193,7 +196,11 @@ class UsuarioService extends ChangeNotifier{
       }
 
     }  
-
+    //borrarde storage
+    await storage.delete(key: 'token');
+    await storage.delete(key: 'viajecurso');
+    await storage.delete(key: 'objUsuario');
+    await storage.delete(key: 'ruta');
     return "Tu sesión ha expirado.";
   }
 

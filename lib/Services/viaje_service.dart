@@ -69,7 +69,7 @@ Future<void>saveRutaViaje( Ruta data)async {
 
   Future<String>createViaje(Viaje viaje) async{
     
-        final tokenCrud = storage.read(key: 'token');
+        final tokenCrud = await storage.read(key: 'token');
         final url = Uri.https( _baseUrl, 'viajes.json',{
           'auth': tokenCrud
         });

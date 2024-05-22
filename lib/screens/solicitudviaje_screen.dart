@@ -282,135 +282,150 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
               polylines: polylines,
             ),
             SafeArea(
-              child: Container(
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 20),
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight * 0.10,
-                        child: const Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Text(
-                            "Solicitar Viaje",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 25),
-                          ),
+              child: LayoutBuilder(builder: (context, constraints) {
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 20),
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight * 0.10,
+                      child: const Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          "Solicitar Viaje",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 25),
                         ),
                       ),
-                      Container(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight * 0.0005,
-                        color: Colors.black54,
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 15, vertical: viajeEncontrado ? 10 : 5),
+                    ),
+                    Container(
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight * 0.0005,
+                      color: Colors.black54,
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 15, vertical: viajeEncontrado ? 10 : 5),
+                      width: constraints.maxWidth,
+                      height: viajeEncontrado
+                          ? ((constraints.maxHeight * 0.80) +
+                              constraints.maxHeight * 0.098)
+                          : constraints.maxHeight * 0.80,
+                      child: LayoutBuilder(builder: (context, constraints5) {
+                        return Stack(children: [
+                          SizedBox(
+                            width: constraints.maxWidth,
+                            height: constraints5.maxHeight,
+                          ),
+                          SizedBox(
+                            width: constraints5.maxWidth,
+                            height: constraints5.maxHeight * 0.25,
+                            child: LayoutBuilder(
+                                builder: (context, constraints11) {
+                              return Column(
+                                children: [
+                                  BotonPersonalizado(
+                                      ancho: constraints11.maxWidth,
+                                      alto: constraints11.maxHeight * 0.35,
+                                      color: Colors.black,
+                                      altoIconos: 0.50,
+                                      anchoIconos: 0.10,
+                                      deshabFondoIconos: true,
+                                      colorIconos: Colors.grey,
+                                      icono: FontAwesomeIcons.locationDot,
+                                      texto:
+                                          nombreorigen, //"Selecciona dirección de origen",
+                                      iconoAux:
+                                          FontAwesomeIcons.shareFromSquare,
+                                      onChanged: () async {
+                                        await context.pushNamed(
+                                            SeleccionUbicacionScreen.name,
+                                            extra: {"textoTitulo":"Indicanos tu ubicación de partida.", 'origen':true});
+                                      }),
+                                  SizedBox(
+                                    height: constraints11.maxHeight * 0.05,
+                                  ),
+                                  BotonPersonalizado(
+                                      ancho: constraints11.maxWidth,
+                                      alto: constraints11.maxHeight * 0.35,
+                                      color: Colors.black,
+                                      altoIconos: 0.50,
+                                      anchoIconos: 0.10,
+                                      colorIconos: Colors.grey,
+                                      deshabFondoIconos: true,
+                                      icono: FontAwesomeIcons.flag,
+                                      iconoAux:
+                                          FontAwesomeIcons.shareFromSquare,
+                                      texto:
+                                          nombreDestino,
+                                      onChanged: ()async {
+                                         await context.pushNamed(
+                                            SeleccionUbicacionScreen.name,
+                                            extra: {"textoTitulo":"Indicanos tu ubicación de destino.", 'origen':false});       
+                                      })
+                                ],
+                              );
+                            }),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: SizedBox(
+                              width: constraints5.maxWidth * 0.75,
+                              height: constraints5.maxHeight * 0.18,
+                              child: viajeEncontrado
+                                  ? _TarjetaChoferAsignado(
+                                      ancho: constraints5.maxWidth * 0.60,
+                                      alto: constraints5.maxHeight * 0.32)
+                                  : _TarjetaTipoViaje(
+                                     costo:  (_tarifa ?? 0).toStringAsFixed(2),
+                                      ancho: constraints5.maxWidth * 0.60,
+                                      alto: constraints5.maxHeight * 0.25),
+                            ),
+                          )
+                        ]);
+                      }),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 10),
                         width: constraints.maxWidth,
                         height: viajeEncontrado
-                            ? ((constraints.maxHeight * 0.80) +
-                                constraints.maxHeight * 0.098)
-                            : constraints.maxHeight * 0.80,
-                        child: LayoutBuilder(builder: (context, constraints5) {
-                          return Stack(children: [
-                            SizedBox(
-                              width: constraints.maxWidth,
-                              height: constraints5.maxHeight,
-                            ),
-                            SizedBox(
-                              width: constraints5.maxWidth,
-                              height: constraints5.maxHeight * 0.25,
-                              child: LayoutBuilder(
-                                  builder: (context, constraints11) {
-                                return Column(
-                                  children: [
-                                    BotonPersonalizado(
-                                        ancho: constraints11.maxWidth,
-                                        alto: constraints11.maxHeight * 0.35,
-                                        color: Colors.black,
-                                        altoIconos: 0.50,
-                                        anchoIconos: 0.10,
-                                        deshabFondoIconos: true,
-                                        colorIconos: Colors.grey,
-                                        icono: FontAwesomeIcons.locationDot,
-                                        texto:
-                                            nombreorigen, //"Selecciona dirección de origen",
-                                        iconoAux:
-                                            FontAwesomeIcons.shareFromSquare,
-                                        onChanged: () async {
-                                          await context.pushNamed(
-                                              SeleccionUbicacionScreen.name,
-                                              extra: {"textoTitulo":"Indicanos tu ubicación de partida.", 'origen':true});
-                                        }),
-                                    SizedBox(
-                                      height: constraints11.maxHeight * 0.05,
-                                    ),
-                                    BotonPersonalizado(
-                                        ancho: constraints11.maxWidth,
-                                        alto: constraints11.maxHeight * 0.35,
-                                        color: Colors.black,
-                                        altoIconos: 0.50,
-                                        anchoIconos: 0.10,
-                                        colorIconos: Colors.grey,
-                                        deshabFondoIconos: true,
-                                        icono: FontAwesomeIcons.flag,
-                                        iconoAux:
-                                            FontAwesomeIcons.shareFromSquare,
-                                        texto:
-                                            nombreDestino,
-                                        onChanged: ()async {
-                                           await context.pushNamed(
-                                              SeleccionUbicacionScreen.name,
-                                              extra: {"textoTitulo":"Indicanos tu ubicación de destino.", 'origen':false});       
-                                        })
-                                  ],
-                                );
-                              }),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: SizedBox(
-                                width: constraints5.maxWidth * 0.75,
-                                height: constraints5.maxHeight * 0.18,
-                                child: viajeEncontrado
-                                    ? _TarjetaChoferAsignado(
-                                        ancho: constraints5.maxWidth * 0.60,
-                                        alto: constraints5.maxHeight * 0.32)
-                                    : _TarjetaTipoViaje(
-                                       costo:  (_tarifa ?? 0).toStringAsFixed(2),
-                                        ancho: constraints5.maxWidth * 0.60,
-                                        alto: constraints5.maxHeight * 0.25),
-                              ),
-                            )
-                          ]);
-                        }),
-                      ),
-                      Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 50, vertical: 10),
-                          width: constraints.maxWidth,
-                          height: viajeEncontrado
-                              ? constraints.maxHeight * 0
-                              : constraints.maxHeight * 0.098,
-                          child: LayoutBuilder(
-                            builder: (context, constraints12) {
-                              return BotonPersonalizado(
-                                  ancho: constraints12.maxWidth * 0.10,
-                                  alto: constraints12.maxHeight * 0.35,
-                                  color: Colors.black,
-                                  icono: FontAwesomeIcons.circleCheck,
-                                  texto: "Solicitar viaje",
-                                  onChanged: () async =>
-                                    // await _mostrarAlertaBuscandoChofer());
-                                      await _mostrarAlertaCalificarViaje());
-                          },
-                          ))
-                    ],
-                  );
-                }),
-              ),
+                            ? constraints.maxHeight * 0
+                            : constraints.maxHeight * 0.098,
+                        child: LayoutBuilder(
+                          builder: (context, constraints12) {
+                            return BotonPersonalizado(
+                                ancho: constraints12.maxWidth * 0.10,
+                                alto: constraints12.maxHeight * 0.35,
+                                color: Colors.black,
+                                icono: FontAwesomeIcons.circleCheck,
+                                texto: "Solicitar viaje",
+                                onChanged: () async {
+                                  if(initialLocation==null || finalLocation==null ){
+                                      NotificationsService.showSnackbar("No ha terminado de seleccionar la ruta.", Colors.amber, Icons.warning);
+                                    return;
+                                  }
+                                  //crear viaje
+                                  Viaje objViaje = Viaje(
+                                    claveUsuarioConfirmo: "", 
+                                    estado: "", 
+                                    fechaSolicitud: "", 
+                                    folio: "", 
+                                    precio: _tarifa!.toStringAsFixed(2), 
+                                    ubicacionOrigen: initialLocation.toString(), 
+                                    ubicacionDestino: finalLocation.toString());
+
+                                  await Provider.of<ViajeService>(context, listen: false).createViaje(objViaje);
+                                  await _mostrarAlertaBuscandoChofer();
+                                   // await _mostrarAlertaCalificarViaje();
+                                });
+                               
+                        },
+                        ))
+                  ],
+                );
+              }),
             )
           ],
         ),
