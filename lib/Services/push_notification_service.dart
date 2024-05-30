@@ -11,8 +11,8 @@ class PushNotificationService{
 
   static FirebaseMessaging messaging = FirebaseMessaging.instance;
   static String? token;
-  static StreamController<String>_messageStreamController = StreamController();
-  static Stream<String>get messagesStream => _messageStreamController.stream;
+  static StreamController<Map<String, dynamic>>_messageStreamController = StreamController();
+  static Stream<Map<String, dynamic>>get messagesStream => _messageStreamController.stream;
  
 
 
@@ -30,13 +30,13 @@ class PushNotificationService{
   static Future _backgroundHandler(RemoteMessage message) async {
     print("onBackground Handler ${message.messageId}");
     print("${message.data}");
-    _messageStreamController.add(message.data["viajeid"]??'No data');
+    _messageStreamController.add(message.data);
   }
 
   static Future _onMessageHandler(RemoteMessage message) async {
     print("onMessage Handler ${message.messageId}");
      print("${message.data}");
-     _messageStreamController.add(message.data["viajeid"]??'No data');
+     _messageStreamController.add(message.data);
 
     await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
@@ -68,7 +68,7 @@ class PushNotificationService{
   static Future _onMessageOpenHandler(RemoteMessage message) async {
     print("onMessageOpen Handler ${message.messageId}");
      print("${message.data}");
-     _messageStreamController.add(message.data["viajeid"]??'No data');
+     _messageStreamController.add(message.data);
   }
 
     

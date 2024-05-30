@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:taxi_app/Services/services.dart';
 import 'package:taxi_app/config/router/app_route.dart';
 import 'package:taxi_app/config/theme/theme_app.dart';
+import 'package:taxi_app/screens/home_chofer_screen.dart';
 
 void main()  async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,9 +27,10 @@ class _AppStateState extends State<AppState> {
     PushNotificationService.messagesStream.listen((msg) {
       print("MyApp: $msg");
       //este se va a comentar por que solo va aser para el chofi
-     NotificationsService.navigatorKey.currentState?.pushNamed( '/homechofer', arguments: msg);
+      //NotificationsService.navigatorKey.currentState?.pushNamed( '/homechofer', arguments: msg);
+      appRouter.pushNamed(HomeChoferScreen.name, extra: msg);
 
-      final snackBar = SnackBar(content: Text(msg),);
+      final snackBar = SnackBar(content: Text("Notificación recibida"),);
       NotificationsService.messengerKey.currentState?.showSnackBar(snackBar);
     });
     

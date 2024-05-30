@@ -20,7 +20,10 @@ final appRouter = GoRouter(
   GoRoute(
     path: '/homechofer',
     name: HomeChoferScreen.name,
-    builder: (context, state) => const HomeChoferScreen()
+    builder: (context, state){
+      final params = state.extra as Map<String, dynamic>;
+      return HomeChoferScreen(data: params);
+    }
     ),
   GoRoute(
       path: '/register',
