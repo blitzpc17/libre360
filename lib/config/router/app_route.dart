@@ -1,7 +1,10 @@
 import 'package:go_router/go_router.dart';
+import 'package:taxi_app/Services/notifications_service.dart';
 import 'package:taxi_app/screens/screens.dart';
 
-final appRouter = GoRouter(routes: [
+final appRouter = GoRouter(
+  navigatorKey: NotificationsService.navigatorKey,
+  routes: [
   GoRoute(
       path: '/',
       name: CheckAuthScreen.name,

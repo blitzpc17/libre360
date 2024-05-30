@@ -11,9 +11,14 @@
 
 
     <application
-        android:label="taxi_app"
+        android:label="Libre360"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
+
+             <meta-data
+          android:name="com.google.firebase.messaging.default_notification_channel_id"
+          android:value="high_importance_channel" />
 
          <meta-data android:name="com.google.android.geo.API_KEY"
                android:value="AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM"/>

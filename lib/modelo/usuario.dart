@@ -16,6 +16,8 @@ class Usuario {
     dynamic color;
     dynamic marca;
     dynamic domicilio;
+    String online;
+    String? tknotif;
     dynamic id;
 
     Usuario({
@@ -34,6 +36,8 @@ class Usuario {
         required this.marca,
         required this.domicilio,
         required this.id,
+        required this.online,
+        this.tknotif
     });
 
     factory Usuario.fromJson(String str) => Usuario.fromMap(json.decode(str));
@@ -55,6 +59,8 @@ class Usuario {
         color: json["color"],
         marca: json["marca"],
         domicilio: json["domicilio"],
+        tknotif: json["tknotif"],
+        online:json["online"],
         id: json["id"],
     );
 
@@ -73,6 +79,8 @@ class Usuario {
         "color": color,
         "marca": marca,
         "domicilio": domicilio,
+        "tknotif": tknotif,
+        "online":online,
         "id": id,
     };
 }

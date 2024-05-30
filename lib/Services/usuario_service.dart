@@ -1,4 +1,6 @@
 
+import 'package:provider/provider.dart';
+
 import '../modelo/models.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -44,6 +46,21 @@ class UsuarioService extends ChangeNotifier{
   }
 
 
+  Future<String>updateUsuario(Usuario usuario) async {   
+
+    final String? token =  await storage.read(key: 'token');    
+    final url = Uri.https( _baseUrl, 'usuarios/${usuario.id}.json',{
+      'auth': token
+    });
+    usuario.online = 'S';
+    usuario.tknotif = await storage.read(key: 'tknotif');
+    final resp = await http.put( url, body: usuario.toJson() );
+    final decodedData = json.decode( resp.body );
+
+    return usuario.email;
+
+  }
+
   Future<String>createUsuario(Usuario usuario) async{
     
     final url = Uri.https(_baseUrlAuth, '/v1/accounts:signUp',{
@@ -71,12 +88,16 @@ class UsuarioService extends ChangeNotifier{
 
         usuario.fechaalta = DateTime.now();
         usuario.activo="S";
+        usuario.online = 'N';
+        usuario.tknotif = await storage.read(key: 'tknotif');
 
         final resp = await http.post( url, body: usuario.toJson() );
         final decodedData = json.decode( resp.body );
         usuario.id = decodedData['name'];
+       
 
         await storage.write(key: 'email', value: usuario.email);
+        await storage.write(key: 'id', value: usuario.id);
 
         return usuario.id!;
 
@@ -121,11 +142,18 @@ class UsuarioService extends ChangeNotifier{
     final Map<String, dynamic> decodedResp = json.decode( resp.body );
 
     if ( decodedResp.containsKey('idToken') ) 
-    {
+    {     
         await storage.write(key: 'token', value: decodedResp['idToken']);
-        final String objSerial =  await obtenerUsuarioXEmail(email);        
-        await storage.write(key: 'objUsuario', value: objSerial);
-         objUsuarioSesion = Usuario.fromJson(objSerial);
+        
+        String objSerial =  await obtenerUsuarioXEmail(email);  
+        objUsuarioSesion = Usuario.fromJson(objSerial);
+        objUsuarioSesion.tknotif = await storage.read(key: 'tknotif');
+        objUsuarioSesion.online = 'S';
+        objUsuarioSesion.id = await storage.read(key: 'id');
+        await updateUsuario(objUsuarioSesion);      
+
+        objSerial =  await obtenerUsuarioXEmail(email);  
+        await storage.write(key: 'objUsuario', value: objSerial);  
 
         return null;
     } else {
@@ -137,9 +165,9 @@ class UsuarioService extends ChangeNotifier{
   Future logout() async {
     await storage.delete(key: 'token');
     await storage.delete(key: 'ruta');
-    await storage.delete(key: 'token');
     await storage.delete(key: 'viajecurso');
     await storage.delete(key: 'objUsuario');
+    await storage.delete(key: 'id');
     return;
   }
 
@@ -168,6 +196,8 @@ class UsuarioService extends ChangeNotifier{
         marca: "",
         domicilio: "",
         id: null, 
+        tknotif: "",
+        online: ""
       );
     }else{
       objUsuarioSesion = Usuario.fromJson(user);
@@ -176,6 +206,7 @@ class UsuarioService extends ChangeNotifier{
   }
 
   Future<String> validarSessionExpiro() async {
+
     final url = Uri.https(_baseUrlAuth, '/v1/accounts:lookup',{
       'key':_firebaseToken
     });
@@ -201,6 +232,7 @@ class UsuarioService extends ChangeNotifier{
     await storage.delete(key: 'viajecurso');
     await storage.delete(key: 'objUsuario');
     await storage.delete(key: 'ruta');
+    await storage.delete(key: 'id');
     return "Tu sesión ha expirado.";
   }
 

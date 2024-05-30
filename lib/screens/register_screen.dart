@@ -6,6 +6,7 @@ import 'package:taxi_app/Services/services.dart';
 import 'package:taxi_app/modelo/models.dart';
 import 'package:taxi_app/providers/select_optins.dart';
 import 'package:taxi_app/providers/usuario_form_provider.dart';
+import 'package:taxi_app/screens/login_screen.dart';
 
 import '../widgets/widgets.dart';
 
@@ -54,6 +55,8 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
       marca: "",
       domicilio: "",
       id: null, 
+      tknotif: "",
+      online: ""
     );
 
 
@@ -342,6 +345,7 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
                                     final usuarioService = Provider.of<UsuarioService>(context, listen: false);
                                     await usuarioService.saveOrCreateUsuario(objUsuario);
                                     NotificationsService.showSnackbar("¡Te has registrado, Bienvenido!", Colors.green.shade700, Icons.check );
+                                    context.pushNamed(LoginScreen.name);
                                   }
 
                                 },  

@@ -5,6 +5,7 @@ class NotificationsService {
 
 
   static GlobalKey<ScaffoldMessengerState> messengerKey = GlobalKey<ScaffoldMessengerState>();
+  static GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
 
 
   static showSnackbar( String message, Color color, IconData icono ) {

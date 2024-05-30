@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ViajesChoferScreen extends StatefulWidget {
+  static String name = 'viajeschofer_screen';
   const ViajesChoferScreen({super.key});
 
   @override
@@ -23,6 +24,7 @@ class _ViajesChoferScreenState extends State<ViajesChoferScreen> {
   @override
   Widget build(BuildContext context) {
     _pantalla = MediaQuery.of(context).size;
+    final args = ModalRoute.of(context)?.settings.arguments??"No data";
 
     return SafeArea(
       child: Scaffold(
@@ -74,8 +76,8 @@ class _ViajesChoferScreenState extends State<ViajesChoferScreen> {
                         SizedBox(
                           width: constraints.maxWidth,
                           height: constraints5.maxHeight,
-                          child: const Center(
-                            child: Text("Mapa"),
+                          child: Center(
+                            child: Text("Mapa args: $args"),
                           ),
                         ),
                         SizedBox(
@@ -197,7 +199,7 @@ class _ViajesChoferScreenState extends State<ViajesChoferScreen> {
                               height: 10,
                             ),
                             Text(
-                              "Daniel Gustavo Ramirez Valdez",
+                              "Daniel Gustavo Ramirez Valdes",
                               style: TextStyle(color: Colors.black),
                               textAlign: TextAlign.center,
                             )

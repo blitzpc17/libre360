@@ -7,6 +7,7 @@ import 'package:taxi_app/modelo/models.dart';
 import 'package:taxi_app/providers/login_form_provider.dart';
 import 'package:taxi_app/screens/home_screen.dart';
 import 'package:taxi_app/screens/register_screen.dart';
+import 'package:taxi_app/screens/screens.dart';
 
 import '../Services/services.dart';
 import '../widgets/widgets.dart';
@@ -139,9 +140,15 @@ class _LoginForm extends StatelessWidget {
 
                                   final String? errorMessahe = await usuarioService.login(loginForm.email, loginForm.password);
 
-                                  if(errorMessahe == null){                                   
-                                    NotificationsService.showSnackbar("¡Bienvenido!", Colors.green, Icons.check);
-                                    context.pushReplacementNamed(HomeScreen.name);
+                                  if(errorMessahe == null){ 
+                                     NotificationsService.showSnackbar("¡Bienvenido!", Colors.green, Icons.check);
+                                  
+                                    if(usuarioService.objUsuarioSesion.rol=='U'){
+                                      context.pushReplacementNamed(HomeScreen.name);
+                                    } else{
+                                      context.pushReplacementNamed(HomeChoferScreen.name);
+                                    }                                 
+                                   
                                   }else{
                                     NotificationsService.showSnackbar(errorMessahe, Colors.amber, Icons.warning);
                                     loginForm.isLoading = false;
