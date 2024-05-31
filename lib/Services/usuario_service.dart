@@ -1,6 +1,3 @@
-
-import 'package:provider/provider.dart';
-
 import '../modelo/models.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -54,6 +51,7 @@ class UsuarioService extends ChangeNotifier{
     });
     usuario.online = 'S';
     usuario.tknotif = await storage.read(key: 'tknotif');
+    //usuario.orden = "0";
     final resp = await http.put( url, body: usuario.toJson() );
     final decodedData = json.decode( resp.body );
 
@@ -89,6 +87,7 @@ class UsuarioService extends ChangeNotifier{
         usuario.fechaalta = DateTime.now();
         usuario.activo="S";
         usuario.online = 'N';
+        usuario.orden = "0";
         usuario.tknotif = await storage.read(key: 'tknotif');
 
         final resp = await http.post( url, body: usuario.toJson() );
@@ -140,6 +139,7 @@ class UsuarioService extends ChangeNotifier{
 
     final resp = await http.post(url, body: json.encode(authData));
     final Map<String, dynamic> decodedResp = json.decode( resp.body );
+    print("idToken: ${decodedResp["idToken"]}");
 
     if ( decodedResp.containsKey('idToken') ) 
     {     
@@ -150,6 +150,7 @@ class UsuarioService extends ChangeNotifier{
         objUsuarioSesion.tknotif = await storage.read(key: 'tknotif');
         objUsuarioSesion.online = 'S';
         objUsuarioSesion.id = await storage.read(key: 'id');
+        objUsuarioSesion.orden = "1";
         await updateUsuario(objUsuarioSesion);      
 
         objSerial =  await obtenerUsuarioXEmail(email);  
@@ -197,7 +198,8 @@ class UsuarioService extends ChangeNotifier{
         domicilio: "",
         id: null, 
         tknotif: "",
-        online: ""
+        online: "",
+        orden: ""
       );
     }else{
       objUsuarioSesion = Usuario.fromJson(user);

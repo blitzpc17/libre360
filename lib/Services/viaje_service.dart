@@ -81,7 +81,47 @@ Future<void>saveRutaViaje( Ruta data)async {
         viajeCurso = viaje;
         await storage.write(key: 'viajecurso', value: viaje.toJson());
         return viaje.id!;
+        //el viaje id se va a mandar en la notificacion para que cuando el chofer lo acepte se pegue ese id al hacer update.
   }
+
+
+  //crear el de modificar para cambiar el estado del viaje y agregar a que chofer se le asigno, en folio ponerle el id del registro
+  Future<bool>updateViaje(Viaje viaje) async {
+  
+   return false;
+  }
+
+  Future<Viaje?>ObtenerViaje(String id) async {
+
+    final String? token = await storage.read(key: 'token');
+    final url = Uri.https(_baseUrl, 'viajes/$id.json', {
+      'auth':token
+    });
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return Viaje.fromJson(response.body);  //jsonDecode(response.body);
+    } else {
+      print('Error getting record: ${response.statusCode}');
+      return null;
+    }
+  }
+
+  Future<LatLng> convertirStringToLatLng(String ubicacionStr) async {
+  // Eliminar 'LatLng(' y ')'
+  ubicacionStr = ubicacionStr.replaceAll('LatLng(', '').replaceAll(')', '');
+  
+  // Dividir la cadena en latitud y longitud
+  List<String> latLngStr = ubicacionStr.split(', ');
+  
+  // Convertir a double
+  double lat = double.parse(latLngStr[0]);
+  double lng = double.parse(latLngStr[1]);
+  
+  // Crear y retornar instancia de LatLng
+  return LatLng(lat, lng);
+}
 
  
 

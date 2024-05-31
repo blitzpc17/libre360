@@ -21,7 +21,7 @@ final appRouter = GoRouter(
     path: '/homechofer',
     name: HomeChoferScreen.name,
     builder: (context, state){
-      final params = state.extra as Map<String, dynamic>;
+      final params = state.extra as Map<String, dynamic>?;
       return HomeChoferScreen(data: params);
     }
     ),

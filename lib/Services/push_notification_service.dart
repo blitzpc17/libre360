@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 //E7:0C:FD:AE:0A:8F:66:C5:8A:C5:7D:E9:C3:24:16:A7:69:0F:74:D2
 
@@ -13,6 +15,10 @@ class PushNotificationService{
   static String? token;
   static StreamController<Map<String, dynamic>>_messageStreamController = StreamController();
   static Stream<Map<String, dynamic>>get messagesStream => _messageStreamController.stream;
+
+  static const String url = "https://fcm.googleapis.com/fcm/send";
+  static const String tokenNotif = "key=AAAA72VLyFo:APA91bGSfYvPkS-pUy0koLLlp45aGaWZwGCkdTcVChDLER_ZuVM8PACIzX6Ghh0Q-APPgliQlK1bTgRfBKP0zWSNR8Rz_niGWmbhUhdA4NqDaVnaWDmWpQnuXn64cRwnoBhiClaegj1C";
+
  
 
 
@@ -81,9 +87,7 @@ class PushNotificationService{
 
 
 
-  static Future initalizeApp() async {
-
-    
+  static Future initalizeApp() async {    
 
     //Push Notifications
     await Firebase.initializeApp(
@@ -127,6 +131,40 @@ class PushNotificationService{
 
   static closeStreams(){
     _messageStreamController.close();
+  }
+
+  static Future<bool> createNotification(Map<String, dynamic> dataNotif) async {
+    
+   final Map<String, dynamic> notification = {
+      'title': dataNotif['title'],
+      'body': dataNotif['body'],
+    };    
+
+    final Map<String, dynamic> data = {
+      'notification': notification,
+      'priority': 'high',
+      'to': dataNotif['tokendestino'],
+      'data': dataNotif['data']
+    };
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=$tokenNotif',
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      print('Successfully sent message: ${response.body}');
+      return true;
+    } else {
+      print('Error sending message: ${response.body}');
+      return false;
+    }
+
+
   }
 
 

@@ -56,7 +56,8 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
       domicilio: "",
       id: null, 
       tknotif: "",
-      online: ""
+      online: "",
+      orden: ""
     );
 
 

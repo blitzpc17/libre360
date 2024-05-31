@@ -16,8 +16,9 @@ class Usuario {
     dynamic color;
     dynamic marca;
     dynamic domicilio;
-    String online;
+    String online;//libre-ocupado-offline
     String? tknotif;
+    String? orden;
     dynamic id;
 
     Usuario({
@@ -37,6 +38,7 @@ class Usuario {
         required this.domicilio,
         required this.id,
         required this.online,
+        this.orden,
         this.tknotif
     });
 
@@ -61,6 +63,7 @@ class Usuario {
         domicilio: json["domicilio"],
         tknotif: json["tknotif"],
         online:json["online"],
+        orden: json["orden"],
         id: json["id"],
     );
 
@@ -81,6 +84,7 @@ class Usuario {
         "domicilio": domicilio,
         "tknotif": tknotif,
         "online":online,
+        "orden":orden,
         "id": id,
     };
 }

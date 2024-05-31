@@ -417,6 +417,9 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                     ubicacionDestino: finalLocation.toString());
 
                                   await Provider.of<ViajeService>(context, listen: false).createViaje(objViaje);
+                                  //mandar notificacion de momento se va a anclar ek primer chofer que este libre ordenado por orden
+                                  //agregar campos orden y en estado se va a amplear
+
                                   await _mostrarAlertaBuscandoChofer();
                                    // await _mostrarAlertaCalificarViaje();
                                 });
