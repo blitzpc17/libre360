@@ -40,9 +40,9 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
   LatLng? finalLocation;
   final Completer<GoogleMapController> _controller = Completer();
   LatLng? _currentPosition;
-  final String _apiKey = "AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
+  final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";//"AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
   double? _tarifa;
-  late Viaje? objViajeSolicitado;
+  Viaje? objViajeSolicitado;
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -68,20 +68,23 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
       if(widget.data!=null){
         objViajeSolicitado = await  Provider.of<ViajeService>(context, listen: false).ObtenerViaje(widget.data!["viajeid"]);
-        initialLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionOrigen);
-        finalLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionDestino as String);
-       
-        if(initialLocation!=null ){
-          _getAddressFromLatLng(LatLng(initialLocation!.latitude, initialLocation!.longitude), true );
-        }
+        if(objViajeSolicitado!=null){
+          initialLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionOrigen);
+          finalLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionDestino as String);
+        
+          if(initialLocation!=null ){
+            _getAddressFromLatLng(LatLng(initialLocation!.latitude, initialLocation!.longitude), true );
+          }
 
-         if(finalLocation!=null ){
-          _getAddressFromLatLng(LatLng(finalLocation!.latitude, finalLocation!.longitude), false );
-        }
+          if(finalLocation!=null ){
+            _getAddressFromLatLng(LatLng(finalLocation!.latitude, finalLocation!.longitude), false );
+          }
 
-        if(initialLocation!=null && finalLocation!=null){
-          _TrazarRuta(initialLocation as LatLng, finalLocation as LatLng);
-        }
+          if(initialLocation!=null && finalLocation!=null){
+            _TrazarRuta(initialLocation as LatLng, finalLocation as LatLng);
+          }
+
+        }       
      }   
 
     });
@@ -332,26 +335,39 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                 color: Colors.black,
                                 icono: FontAwesomeIcons.circleCheck,
                                 texto: "Aceptar viaje",
-                                onChanged: () async {
-                                  if(initialLocation==null || finalLocation==null ){
-                                      NotificationsService.showSnackbar("No ha terminado de seleccionar la ruta.", Colors.amber, Icons.warning);
-                                    return;
+                                onChanged:(initialLocation==null || finalLocation==null )?null: () async {
+                                  
+                                  //modificar estado viaje
+                                  if(objViajeSolicitado!.estado=='P'){
+                                    objViajeSolicitado!.estado = 'A';
+                                  }else if (objViajeSolicitado!.estado=='A'){
+                                    objViajeSolicitado!.estado = 'R';
+                                  }else if (objViajeSolicitado!.estado=='R'){
+                                    objViajeSolicitado!.estado = 'T';
+                                  }else if (objViajeSolicitado!.estado=='T'){
+                                    objViajeSolicitado!.estado = 'F';
                                   }
-                                  //crear viaje
-                                  Viaje objViaje = Viaje(
-                                    claveUsuarioConfirmo: "", 
-                                    estado: "", 
-                                    fechaSolicitud: "", 
-                                    folio: "", 
-                                    precio: _tarifa!.toStringAsFixed(2), 
-                                    ubicacionOrigen: initialLocation.toString(), 
-                                    ubicacionDestino: finalLocation.toString());
+                                  await Provider.of<ViajeService>(context, listen: false).updateViaje(objViajeSolicitado!);
+                                  //acciones despues de modificar el viaje
+                                  if(objViajeSolicitado!.estado=='A'){
+                                    //notificar cliente que va en camino
+                                    Map<String, dynamic> dataNotif = {
+                                      "title":"¡Viaje aceptado!", 
+                                      "body":"El conductor viene en camino...",
+                                      "tokendestino":objViajeSolicitado!.tokenCliente,
+                                      "data":""//mandar data del conductor
+                                    };
+                                    await PushNotificationService.createNotification(dataNotif);
+                                    //cambiar ruta de donde esta el chofer a la ubicacion del cliente
 
-                                  await Provider.of<ViajeService>(context, listen: false).createViaje(objViaje);
-                                  //mandar notificacion de momento se va a anclar ek primer chofer que este libre ordenado por orden
-                                  //agregar campos orden y en estado se va a amplear
+                                  }else if(objViajeSolicitado!.estado=='F'){
+                                    //limpiar pantalla home para un nuevo viaje
+                                  }
+                                  
+                                  //notificar al cliente que va en camino
+                                 
 
-                                  await _mostrarAlertaBuscandoChofer();
+                                  //await _mostrarAlertaBuscandoChofer();
                                    // await _mostrarAlertaCalificarViaje();
                                 });
                                

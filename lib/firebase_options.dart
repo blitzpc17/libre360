@@ -17,17 +17,29 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -40,54 +52,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCe9OeUJjv_yc1MA8kbT4BpsbUUA9abYsc',
-    appId: '1:1028196649050:web:c7409df30f93e189ac3063',
-    messagingSenderId: '1028196649050',
-    projectId: 'prueba23-edf7e',
-    authDomain: 'prueba23-edf7e.firebaseapp.com',
-    databaseURL: 'https://prueba23-edf7e-default-rtdb.firebaseio.com',
-    storageBucket: 'prueba23-edf7e.appspot.com',
-    measurementId: 'G-8GD20816V5',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDiO4VUEf9Nd-NvAS2z2wPWjd2cR7WPAuw',
-    appId: '1:1028196649050:android:526c70cae4d071b4ac3063',
-    messagingSenderId: '1028196649050',
-    projectId: 'prueba23-edf7e',
-    databaseURL: 'https://prueba23-edf7e-default-rtdb.firebaseio.com',
-    storageBucket: 'prueba23-edf7e.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAVueGjXEzz-qbgIewZURW2f7wkVa_Z9Gc',
-    appId: '1:1028196649050:ios:facc988157b0db6dac3063',
-    messagingSenderId: '1028196649050',
-    projectId: 'prueba23-edf7e',
-    databaseURL: 'https://prueba23-edf7e-default-rtdb.firebaseio.com',
-    storageBucket: 'prueba23-edf7e.appspot.com',
-    iosBundleId: 'com.example.taxiApp',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAVueGjXEzz-qbgIewZURW2f7wkVa_Z9Gc',
-    appId: '1:1028196649050:ios:facc988157b0db6dac3063',
-    messagingSenderId: '1028196649050',
-    projectId: 'prueba23-edf7e',
-    databaseURL: 'https://prueba23-edf7e-default-rtdb.firebaseio.com',
-    storageBucket: 'prueba23-edf7e.appspot.com',
-    iosBundleId: 'com.example.taxiApp',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCe9OeUJjv_yc1MA8kbT4BpsbUUA9abYsc',
-    appId: '1:1028196649050:web:46fcc8062da64a9bac3063',
-    messagingSenderId: '1028196649050',
-    projectId: 'prueba23-edf7e',
-    authDomain: 'prueba23-edf7e.firebaseapp.com',
-    databaseURL: 'https://prueba23-edf7e-default-rtdb.firebaseio.com',
-    storageBucket: 'prueba23-edf7e.appspot.com',
-    measurementId: 'G-J2HF12RE91',
+    apiKey: 'AIzaSyDjo9WOMlda7iADBMOmHWsMSK1J6wI7p3Q',
+    appId: '1:255939766943:android:cfca2cff5ceabe7b33d0aa',
+    messagingSenderId: '255939766943',
+    projectId: 'libre360-228bb',
+    storageBucket: 'libre360-228bb.appspot.com',
   );
 }

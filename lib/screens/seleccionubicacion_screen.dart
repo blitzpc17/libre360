@@ -32,7 +32,7 @@ class _SeleccionUbicacionScreenState extends State<SeleccionUbicacionScreen> {
   final TextEditingController _controller = TextEditingController();
 
   void makeSuggestion(String input) async {
-    String googlePlacesApiKey = 'AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM';
+    String googlePlacesApiKey = 'AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw';//'AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM';
     String groundUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
     String request = '$groundUrl?input=$input&key=$googlePlacesApiKey&sessiontoken=$tokenForSession&components=country:mx&locality:Tehuacan';
 

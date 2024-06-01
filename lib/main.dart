@@ -53,6 +53,9 @@ class _MainAppState extends State<MainApp> {
 
           }else{
             //usuario
+            //validad la data de la notificacion
+            
+
           } 
 
           final snackBar = SnackBar(content: Text("Notificación recibida"));

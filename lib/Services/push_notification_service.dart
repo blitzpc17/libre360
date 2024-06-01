@@ -17,7 +17,7 @@ class PushNotificationService{
   static Stream<Map<String, dynamic>>get messagesStream => _messageStreamController.stream;
 
   static const String url = "https://fcm.googleapis.com/fcm/send";
-  static const String tokenNotif = "key=AAAA72VLyFo:APA91bGSfYvPkS-pUy0koLLlp45aGaWZwGCkdTcVChDLER_ZuVM8PACIzX6Ghh0Q-APPgliQlK1bTgRfBKP0zWSNR8Rz_niGWmbhUhdA4NqDaVnaWDmWpQnuXn64cRwnoBhiClaegj1C";
+  static const String tokenNotif = "AAAA72VLyFo:APA91bGSfYvPkS-pUy0koLLlp45aGaWZwGCkdTcVChDLER_ZuVM8PACIzX6Ghh0Q-APPgliQlK1bTgRfBKP0zWSNR8Rz_niGWmbhUhdA4NqDaVnaWDmWpQnuXn64cRwnoBhiClaegj1C";
 
  
 
@@ -92,11 +92,11 @@ class PushNotificationService{
     //Push Notifications
     await Firebase.initializeApp(
       options: const FirebaseOptions(
-        apiKey: "AIzaSyDiO4VUEf9Nd-NvAS2z2wPWjd2cR7WPAuw", 
-        appId: "1:1028196649050:android:526c70cae4d071b4ac3063", 
-        messagingSenderId: "1028196649050", 
-        projectId: "prueba23-edf7e",
-        storageBucket: "prueba23-edf7e.appspot.com")
+        apiKey:"AIzaSyDjo9WOMlda7iADBMOmHWsMSK1J6wI7p3Q",// "AIzaSyDiO4VUEf9Nd-NvAS2z2wPWjd2cR7WPAuw",   cambiar todo por el nuevo proyecto
+        appId: "1:255939766943:android:cfca2cff5ceabe7b33d0aa", 
+        messagingSenderId: "255939766943", 
+        projectId: "libre360-228bb",
+        storageBucket: "libre360-228bb.appspot.com")
     );
 
     await messaging.requestPermission(
@@ -144,17 +144,19 @@ class PushNotificationService{
       'notification': notification,
       'priority': 'high',
       'to': dataNotif['tokendestino'],
-      'data': dataNotif['data']
+     // 'data': dataNotif['data']
     };
 
     final response = await http.post(
       Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'key=$tokenNotif',
+        'Authorization': 'key=${tokenNotif}',
       },
       body: jsonEncode(data),
     );
+
+    print(tokenNotif);
 
     if (response.statusCode == 200) {
       print('Successfully sent message: ${response.body}');

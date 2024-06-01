@@ -7,7 +7,7 @@ import '../modelo/models.dart';
 import 'package:http/http.dart' as http;
 
 class ViajeService extends ChangeNotifier{
-  final String _baseUrl = 'prueba23-edf7e-default-rtdb.firebaseio.com';
+  final String _baseUrl = 'https://libre360-228bb-default-rtdb.firebaseio.com/';//'prueba23-edf7e-default-rtdb.firebaseio.com';
   final List<Viaje>viajes = [];
   final storage = FlutterSecureStorage();
 

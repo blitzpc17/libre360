@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
@@ -42,7 +43,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   String? nombreorigen = "Seleccione el lugar de origen.";
   String? nombreDestino = "Seleccione el lugar de destino.";
   LatLng? _currentPosition;
-  final String _apiKey = "AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
+  final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";//"AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
   double? _tarifa;
 
   static const CameraPosition _initialPosition = CameraPosition(
@@ -255,6 +256,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   @override
   Widget build(BuildContext context) {
     _pantalla = MediaQuery.of(context).size;
+    final storage = FlutterSecureStorage();
 
     return SafeArea(
       child: Scaffold(
@@ -414,9 +416,18 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                     folio: "", 
                                     precio: _tarifa!.toStringAsFixed(2), 
                                     ubicacionOrigen: initialLocation.toString(), 
-                                    ubicacionDestino: finalLocation.toString());
+                                    ubicacionDestino: finalLocation.toString(),
+                                    tokenCliente: await storage.read(key: "tknotif") ??""
+                                    );
 
                                   await Provider.of<ViajeService>(context, listen: false).createViaje(objViaje);
+                                   Map<String, dynamic> dataNotif = {
+                                      "title":"¡Cayó un viaje!", 
+                                      "body":"Un cliente quiere usar tus servicios de transporte...",
+                                      "tokendestino":"cwCadTatRbK8NpUC-ViXhB:APA91bGhAlO4vUkt3c9eHwUQCZbkj5lC9W8N6GMnitg5Bu29NLW00Ng6uSepV0poNvUY32LYvJV-IPOIYT6ZssHPboYt_1_3XWIO_W3hwIw7FIVsnoolpodE-WNHfZwiy3zr2yujliMu", // es del chofer ahoi va el algoritmo del orden
+                                      "data":""//mandar data del conductor
+                                    };
+                                    await PushNotificationService.createNotification(dataNotif);
                                   //mandar notificacion de momento se va a anclar ek primer chofer que este libre ordenado por orden
                                   //agregar campos orden y en estado se va a amplear
 
