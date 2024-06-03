@@ -31,7 +31,12 @@ class CheckAuthScreen extends StatelessWidget {
             } else {
 
               Future.microtask(() {
-                context.pushReplacementNamed(HomeScreen.name);
+                if(authService.objUsuarioSesion.rol=='U'){
+                  context.pushReplacementNamed(HomeScreen.name);
+                }else{
+                  context.pushReplacementNamed(HomeChoferScreen.name);
+                }
+                
               });
             }
 

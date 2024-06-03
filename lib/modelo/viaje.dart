@@ -12,6 +12,8 @@ class Viaje {
     String ubicacionOrigen;
     String tokenCliente;
     String? tokenChofer;
+    String clienteId;
+    String? ubicacionChofer;
     String? id;
 
     Viaje({
@@ -25,6 +27,8 @@ class Viaje {
         this.ubicacionDestino,
         required this.tokenCliente,
         required this.ubicacionOrigen,
+        required this.clienteId,
+        this.ubicacionChofer,
         this.tokenChofer
     });
 
@@ -43,7 +47,9 @@ class Viaje {
         ubicacionDestino: json["UbicacionDestino"],
         ubicacionOrigen: json["UbicacionOrigen"],
         tokenCliente:  json["tokenCliente"],
-        tokenChofer: json["tokenChofer"]
+        tokenChofer: json["tokenChofer"],
+        ubicacionChofer: json["ubicacionChofer"],
+        clienteId: json["clienteId"] 
     );
 
     Map<String, dynamic> toMap() => {
@@ -57,6 +63,8 @@ class Viaje {
         "UbicacionDestino": ubicacionDestino,
         "UbicacionOrigen": ubicacionOrigen,
         "tokenCliente":tokenCliente,
-        "tokenChofer":tokenChofer
+        "tokenChofer":tokenChofer,
+        "clienteId":clienteId,
+        "ubicacionChofer":ubicacionChofer
     };
 }

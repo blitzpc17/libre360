@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -40,10 +43,13 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
   LatLng? finalLocation;
   final Completer<GoogleMapController> _controller = Completer();
   LatLng? _currentPosition;
-  final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";//"AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
+  final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";
   double? _tarifa;
   Viaje? objViajeSolicitado;
   final storage = FlutterSecureStorage();
+  String? costo;
+  String? NombreDestino;
+  String? NombreOrigen;
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -212,12 +218,16 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
           position.latitude, position.longitude);
       Placemark place = placemarks[0];
 
-      setState(() {
-      
+      setState(() { 
 
+        if(origen){
+          NombreOrigen = "${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
+        }else{
+          NombreDestino = "${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
+        }
 
-      
       });
+
     } catch (e) {
       print(e);
     }
@@ -243,6 +253,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
         drawer: const Menulateral(),
         body: Stack(
           children: [
+          
             GoogleMap(
               initialCameraPosition: _initialPosition,
               mapType: MapType.normal,
@@ -251,6 +262,23 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
               },
               markers: Set<Marker>.of(myMarkers),
               polylines: polylines,
+            ),            
+            FractionallySizedBox(
+              widthFactor: 1.0,
+              heightFactor: 1.0,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: ElevatedButton(
+                    onPressed: (objViajeSolicitado==null || objViajeSolicitado!= null &&objViajeSolicitado!.estado=='P')?null:(){print("perreo");}, 
+                    child: Icon(Icons.map),
+                    style: ElevatedButton.styleFrom(
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(15)
+                    )),
+                ),
+              ),
             ),
             SafeArea(
               child: LayoutBuilder(builder: (context, constraints) {
@@ -300,7 +328,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                 ],
                               );
                             }),
-                          ),
+                          ),                          
                           Align(
                               alignment: Alignment.bottomCenter,
                               child: SizedBox(
@@ -312,6 +340,8 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                         alto: constraints5.maxHeight * 0.32,
                                       )
                                     : _TarjetaTipoViaje(
+                                        NombreDestino: (objViajeSolicitado!=null?NombreDestino:"-"),
+                                        NombreOrigen: (objViajeSolicitado!=null?NombreOrigen:"-"),
                                         costo: (objViajeSolicitado != null ? objViajeSolicitado!.precio : "0.00"),
                                         ancho: constraints5.maxWidth * 0.60,
                                         alto: constraints5.maxHeight * 0.25,
@@ -342,6 +372,8 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                   if(objViajeSolicitado!.estado=='P'){
                                     objViajeSolicitado!.estado = 'A';
                                     objViajeSolicitado!.tokenChofer = await storage.read(key: 'tknotif');
+                                    objViajeSolicitado!.ubicacionChofer = _currentPosition as String;
+                                    objViajeSolicitado!.claveUsuarioConfirmo = await  Provider.of<UsuarioService>(context, listen: false).objUsuarioSesion.id;
                                   }else if (objViajeSolicitado!.estado=='A'){
                                     objViajeSolicitado!.estado = 'R';
                                   }else if (objViajeSolicitado!.estado=='R'){
@@ -357,10 +389,12 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                       "title":"¡Viaje aceptado!", 
                                       "body":"El conductor viene en camino...",
                                       "tokendestino":objViajeSolicitado!.tokenCliente,
-                                      "data":""//mandar data del conductor
+                                      "data":{"viajeid":objViajeSolicitado!.id}//mandar data del conductor
                                     };
                                     await PushNotificationService.createNotification(dataNotif);
-                                    //cambiar ruta de donde esta el chofer a la ubicacion del cliente
+
+                                    //pintar linea del chofer al cliente
+
 
                                   }else if(objViajeSolicitado!.estado=='F'){
                                     //limpiar pantalla home para un nuevo viaje
@@ -518,16 +552,25 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 class _TarjetaTipoViaje extends StatelessWidget {
   final double ancho;
   final double alto;
-  final String costo;
+  final String? costo;
+  final String? NombreOrigen;
+  final String? NombreDestino;
 
-  const _TarjetaTipoViaje({required this.ancho, required this.alto, required this.costo});
+
+  const _TarjetaTipoViaje({
+    required this.ancho, 
+    required this.alto, 
+    required this.NombreOrigen,
+    required this.NombreDestino,
+    required this.costo
+    });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: ancho,
       height: alto,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(5),
@@ -548,14 +591,14 @@ class _TarjetaTipoViaje extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Expanded(
+               /* const Expanded(
                     child: CircleAvatar(
                   radius: 22,
                   backgroundImage:
                       AssetImage("assets/imgbackgrounds/bg_solicitarviaje.png"),
-                )),
+                )),*/
                 Expanded(
-                  flex: 2,
+                  flex: 4,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -563,14 +606,26 @@ class _TarjetaTipoViaje extends StatelessWidget {
                         child: Text(
                           "Viaje Estándar",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 12),
-                          textAlign: TextAlign.left,
+                              fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ),
+                      const SizedBox(height: 5),
+                       Expanded(
+                        child: Text(
+                          "Origen: ${NombreOrigen}",
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          textAlign: TextAlign.start
+                        )),
+                         Expanded(
+                        child: Text(
+                          "Destino: ${NombreDestino}",
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          textAlign: TextAlign.start,
+                        )),
                       Expanded(
                         child: Text(
                           "\$ ${costo}",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                           textAlign: TextAlign.center,
                         ),
                       ),
