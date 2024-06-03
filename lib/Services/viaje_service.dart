@@ -7,7 +7,7 @@ import '../modelo/models.dart';
 import 'package:http/http.dart' as http;
 
 class ViajeService extends ChangeNotifier{
-  final String _baseUrl = 'https://libre360-228bb-default-rtdb.firebaseio.com/';//'prueba23-edf7e-default-rtdb.firebaseio.com';
+  final String _baseUrl = 'prueba23-edf7e-default-rtdb.firebaseio.com';
   final List<Viaje>viajes = [];
   final storage = FlutterSecureStorage();
 
@@ -73,8 +73,7 @@ Future<void>saveRutaViaje( Ruta data)async {
         final url = Uri.https( _baseUrl, 'viajes.json',{
           'auth': tokenCrud
         });
-        viaje.fechaSolicitud = DateTime.now().toString();
-        viaje.estado="P";//PENDIENTE
+       
         final resp = await http.post( url, body: viaje.toJson() );
         final decodedData = json.decode( resp.body );
         viaje.id = decodedData['name'];
@@ -109,22 +108,54 @@ Future<void>saveRutaViaje( Ruta data)async {
   }
 
   Future<LatLng> convertirStringToLatLng(String ubicacionStr) async {
-  // Eliminar 'LatLng(' y ')'
-  ubicacionStr = ubicacionStr.replaceAll('LatLng(', '').replaceAll(')', '');
-  
-  // Dividir la cadena en latitud y longitud
-  List<String> latLngStr = ubicacionStr.split(', ');
-  
-  // Convertir a double
-  double lat = double.parse(latLngStr[0]);
-  double lng = double.parse(latLngStr[1]);
-  
-  // Crear y retornar instancia de LatLng
-  return LatLng(lat, lng);
-}
+    // Eliminar 'LatLng(' y ')'
+    ubicacionStr = ubicacionStr.replaceAll('LatLng(', '').replaceAll(')', '');
+    
+    // Dividir la cadena en latitud y longitud
+    List<String> latLngStr = ubicacionStr.split(', ');
+    
+    // Convertir a double
+    double lat = double.parse(latLngStr[0]);
+    double lng = double.parse(latLngStr[1]);
+    
+    // Crear y retornar instancia de LatLng
+    return LatLng(lat, lng);
+  }
+
+
+  Future<Usuario?> ObtenerConductorViaje(String edoViaje) async {
+    const String urlComplemento = 'usuarios.json';
+    final String? token = await storage.read(key: 'token');
+    print("tokenauth: $token");
+    final url = Uri.https(_baseUrl, urlComplemento, {
+        'auth':token,
+        'orderBy':'"orden"'
+      });
+
+      final response = await http.get(url);
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body) as Map<String, dynamic>;
+         /* final filteredRecords = data.values.where((record) {
+            if(record['rol'] == 'C' && record["online"] == 'S' && ){
+
+            }
+          }).toList();*/
+          Usuario? obj;
+          data.forEach((key, value) {
+              obj = Usuario.fromMap(value);
+              if(obj!.rol == 'C' && obj!.online == 'S' && key!=null){
+                obj!.id = key;
+                return;
+              }
+          });
+
+         return obj;
+        }
+
+        return null;
+  }
 
  
-
 
 
 

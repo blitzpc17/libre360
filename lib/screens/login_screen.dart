@@ -95,7 +95,8 @@ class _LoginForm extends StatelessWidget {
                         scrollDirection: Axis.vertical,
                         child: Column(
                           children: [
-                            CajaTextoPersonalizada(
+                            CajaTextoPersonalizada(    
+                              textInputType: TextInputType.emailAddress,                          
                               label: "Correo electronico",
                               hint: "Correo electronico",
                               icono: FontAwesomeIcons.envelope,
@@ -105,6 +106,7 @@ class _LoginForm extends StatelessWidget {
                               height: 15,
                             ),
                             CajaTextoPersonalizada(
+                              textInputType: TextInputType.text,
                               label: "Contraseña",
                               hint: "Contraseña",
                               icono: FontAwesomeIcons.lock,

@@ -41,7 +41,7 @@ class PushNotificationService{
 
   static Future _onMessageHandler(RemoteMessage message) async {
     print("onMessage Handler ${message.messageId}");
-     print("${message.data}");
+     print("${message.data[0]}");
      _messageStreamController.add(message.data);
 
     await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
@@ -56,7 +56,7 @@ class PushNotificationService{
           flutterLocalNotificationsPlugin.show(
             notification.hashCode,
             notification.title,
-            notification.body,
+            notification.body,            
             NotificationDetails(
               android: AndroidNotificationDetails(
                 channel.id,
@@ -92,11 +92,11 @@ class PushNotificationService{
     //Push Notifications
     await Firebase.initializeApp(
       options: const FirebaseOptions(
-        apiKey:"AIzaSyDjo9WOMlda7iADBMOmHWsMSK1J6wI7p3Q",// "AIzaSyDiO4VUEf9Nd-NvAS2z2wPWjd2cR7WPAuw",   cambiar todo por el nuevo proyecto
-        appId: "1:255939766943:android:cfca2cff5ceabe7b33d0aa", 
-        messagingSenderId: "255939766943", 
-        projectId: "libre360-228bb",
-        storageBucket: "libre360-228bb.appspot.com")
+        apiKey:"AIzaSyDiO4VUEf9Nd-NvAS2z2wPWjd2cR7WPAuw", 
+        appId: "1:1028196649050:android:526c70cae4d071b4ac3063", 
+        messagingSenderId: "1028196649050", 
+        projectId: "prueba23-edf7e",
+        storageBucket: "prueba23-edf7e.appspot.com")
     );
 
     await messaging.requestPermission(
@@ -143,8 +143,8 @@ class PushNotificationService{
     final Map<String, dynamic> data = {
       'notification': notification,
       'priority': 'high',
-      'to': dataNotif['tokendestino'],
-     // 'data': dataNotif['data']
+      'to': dataNotif['tokendestino'],      
+      'data': dataNotif['data']
     };
 
     final response = await http.post(

@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -43,6 +43,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
   final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";//"AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
   double? _tarifa;
   Viaje? objViajeSolicitado;
+  final storage = FlutterSecureStorage();
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -66,7 +67,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
 
-      if(widget.data!=null){
+      if(widget.data!=null && widget.data!.isNotEmpty){
         objViajeSolicitado = await  Provider.of<ViajeService>(context, listen: false).ObtenerViaje(widget.data!["viajeid"]);
         if(objViajeSolicitado!=null){
           initialLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionOrigen);
@@ -340,6 +341,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                   //modificar estado viaje
                                   if(objViajeSolicitado!.estado=='P'){
                                     objViajeSolicitado!.estado = 'A';
+                                    objViajeSolicitado!.tokenChofer = await storage.read(key: 'tknotif');
                                   }else if (objViajeSolicitado!.estado=='A'){
                                     objViajeSolicitado!.estado = 'R';
                                   }else if (objViajeSolicitado!.estado=='R'){

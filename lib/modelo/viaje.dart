@@ -11,6 +11,7 @@ class Viaje {
     String? ubicacionDestino;
     String ubicacionOrigen;
     String tokenCliente;
+    String? tokenChofer;
     String? id;
 
     Viaje({
@@ -24,6 +25,7 @@ class Viaje {
         this.ubicacionDestino,
         required this.tokenCliente,
         required this.ubicacionOrigen,
+        this.tokenChofer
     });
 
     factory Viaje.fromJson(String str) => Viaje.fromMap(json.decode(str));
@@ -40,7 +42,8 @@ class Viaje {
         precio: json["Precio"],
         ubicacionDestino: json["UbicacionDestino"],
         ubicacionOrigen: json["UbicacionOrigen"],
-        tokenCliente:  json["tokenCliente"]
+        tokenCliente:  json["tokenCliente"],
+        tokenChofer: json["tokenChofer"]
     );
 
     Map<String, dynamic> toMap() => {
@@ -53,6 +56,7 @@ class Viaje {
         "Precio": precio,
         "UbicacionDestino": ubicacionDestino,
         "UbicacionOrigen": ubicacionOrigen,
-        "tokenCliente":tokenCliente
+        "tokenCliente":tokenCliente,
+        "tokenChofer":tokenChofer
     };
 }

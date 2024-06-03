@@ -45,6 +45,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   LatLng? _currentPosition;
   final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";//"AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
   double? _tarifa;
+  final storage = FlutterSecureStorage();
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -256,7 +257,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   @override
   Widget build(BuildContext context) {
     _pantalla = MediaQuery.of(context).size;
-    final storage = FlutterSecureStorage();
+    
 
     return SafeArea(
       child: Scaffold(
@@ -403,11 +404,11 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                 color: Colors.black,
                                 icono: FontAwesomeIcons.circleCheck,
                                 texto: "Solicitar viaje",
-                                onChanged: () async {
+                                onChanged: _tarifa==null?null : () async {
                                   if(initialLocation==null || finalLocation==null ){
                                       NotificationsService.showSnackbar("No ha terminado de seleccionar la ruta.", Colors.amber, Icons.warning);
                                     return;
-                                  }
+                                  }                                  
                                   //crear viaje
                                   Viaje objViaje = Viaje(
                                     claveUsuarioConfirmo: "", 
@@ -417,19 +418,33 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                     precio: _tarifa!.toStringAsFixed(2), 
                                     ubicacionOrigen: initialLocation.toString(), 
                                     ubicacionDestino: finalLocation.toString(),
-                                    tokenCliente: await storage.read(key: "tknotif") ??""
-                                    );
+                                    tokenCliente: await storage.read(key: "tknotif") ??"",
+                                    tokenChofer: ""                                    
+                                  );
 
-                                  await Provider.of<ViajeService>(context, listen: false).createViaje(objViaje);
+                                  objViaje.fechaSolicitud = DateTime.now().toString();
+                                  objViaje.estado="P";//PENDIENTE
+
+                                  //actualizar el tokenchofer 
+                                  final Usuario? objChoferAsignado = await Provider.of<ViajeService>(context, listen: false).ObtenerConductorViaje("P");
+
+                                  if(objChoferAsignado==null){
+                                    //mandar error que no hay chofer
+                                    throw "no hay chofer weee";
+                                  }
+
+                                  objViaje.tokenChofer = objChoferAsignado.tknotif;
+
+                                  final String viajeid = await Provider.of<ViajeService>(context, listen: false).createViaje(objViaje);
+
                                    Map<String, dynamic> dataNotif = {
                                       "title":"¡Cayó un viaje!", 
                                       "body":"Un cliente quiere usar tus servicios de transporte...",
-                                      "tokendestino":"cwCadTatRbK8NpUC-ViXhB:APA91bGhAlO4vUkt3c9eHwUQCZbkj5lC9W8N6GMnitg5Bu29NLW00Ng6uSepV0poNvUY32LYvJV-IPOIYT6ZssHPboYt_1_3XWIO_W3hwIw7FIVsnoolpodE-WNHfZwiy3zr2yujliMu", // es del chofer ahoi va el algoritmo del orden
-                                      "data":""//mandar data del conductor
+                                      "tokendestino":objViaje.tokenChofer,
+                                      "data":{"viajeid":viajeid}//mandar data del conductor
                                     };
+
                                     await PushNotificationService.createNotification(dataNotif);
-                                  //mandar notificacion de momento se va a anclar ek primer chofer que este libre ordenado por orden
-                                  //agregar campos orden y en estado se va a amplear
 
                                   await _mostrarAlertaBuscandoChofer();
                                    // await _mostrarAlertaCalificarViaje();

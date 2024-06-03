@@ -9,6 +9,7 @@ class CajaTextoPersonalizada extends StatelessWidget {
   final Function(String)? onChanged;
   final String? Function(String?)? validator;
   final TextEditingController? controller;
+  final TextInputType? textInputType;
   
 
   const CajaTextoPersonalizada(
@@ -21,7 +22,8 @@ class CajaTextoPersonalizada extends StatelessWidget {
       this.validator,
       this.icono,
       this.iconoPrefix,
-      this.controller
+      this.controller,
+      this.textInputType
       });
 
   @override
@@ -32,7 +34,8 @@ class CajaTextoPersonalizada extends StatelessWidget {
         borderSide: const BorderSide(color: Colors.black45),
         borderRadius: BorderRadius.circular(10));
 
-    return TextFormField(   
+    return TextFormField(  
+      keyboardType: textInputType??TextInputType.text,
       controller: controller,   
       onChanged: onChanged,
       validator: validator,
@@ -53,7 +56,7 @@ class CajaTextoPersonalizada extends StatelessWidget {
         hintText: hint,
         errorText: errorMessage,
         focusColor: Colors.black,
-        suffixIcon: icono == null ? Container() : Icon(icono),
+        suffixIcon: icono == null ? Container() : Icon(icono),        
         //prefix: iconoPrefix == null ? Container() : Icon(iconoPrefix)
       ),
     );

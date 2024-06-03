@@ -40,12 +40,11 @@ class _MenulateralState extends State<Menulateral> {
                 child: LayoutBuilder(builder: (context, constraints2) {
                   return Column(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Center(
                           child: CircleAvatar(
                             radius: 50,
-                            backgroundImage: NetworkImage(
-                                "https://static.wikia.nocookie.net/logopedia/images/3/3a/1024x1024bb.jpg"),
+                            backgroundImage: AssetImage(usuarioService.objUsuarioSesion.rol=="C"?'assets/driver.png':'assets/user.png'),
                           ),
                         ),
                       ),
@@ -55,12 +54,23 @@ class _MenulateralState extends State<Menulateral> {
                             width: constraints2.maxWidth,
                             height: constraints2.maxHeight * 0.40,
                             child:  Center(
-                              child: Text(
-                                // ignore: unnecessary_null_comparison
-                                "Bienvenido ${usuarioService.objUsuarioSesion != null ? '${usuarioService.objUsuarioSesion.nombres} ${usuarioService.objUsuarioSesion.apellidos}' : ''}",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    // ignore: unnecessary_null_comparison
+                                    "Bienvenido ${usuarioService.objUsuarioSesion != null ? '${usuarioService.objUsuarioSesion.nombres} ${usuarioService.objUsuarioSesion.apellidos}' : ''}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                  Text(
+                                    // ignore: unnecessary_null_comparison
+                                    usuarioService.objUsuarioSesion.rol=='C'?"Conductor":"Usuario",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
