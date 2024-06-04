@@ -192,7 +192,7 @@ class _tarjetaHistorial extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                   s.folio,
+                   s.folio!,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     textAlign: TextAlign.center,
                   ),

@@ -421,7 +421,9 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                                     tokenCliente: await storage.read(key: "tknotif") ??"",
                                     tokenChofer: "",
                                     ubicacionChofer: "",
-                                    clienteId: await Provider.of<UsuarioService>(context, listen: false).objUsuarioSesion.id                                 
+                                    clienteId: await Provider.of<UsuarioService>(context, listen: false).objUsuarioSesion.id  ,
+                                    fechaArrivo: "" ,
+                                    fechaConfirmacion: ""                             
                                   );
 
                                   objViaje.fechaSolicitud = DateTime.now().toString();

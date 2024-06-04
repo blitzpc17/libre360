@@ -18,6 +18,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_app/Services/services.dart';
 import 'package:taxi_app/modelo/models.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,9 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
   List<String> images = [
     'assets/origen.png',
-    'assets/llegada.png'
+    'assets/llegada.png',
+    'assets/persona.png',
+    'assets/origen.png'
   ];
 
   final List<Marker> myMarkers = [];
@@ -75,6 +78,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
       if(widget.data!=null && widget.data!.isNotEmpty){
         objViajeSolicitado = await  Provider.of<ViajeService>(context, listen: false).ObtenerViaje(widget.data!["viajeid"]);
+        objViajeSolicitado!.id = widget.data!["viajeid"];
         if(objViajeSolicitado!=null){
           initialLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionOrigen);
           finalLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionDestino as String);
@@ -113,7 +117,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
     }
   }
 
-  Future<void> _setPolyline(LatLng origen, LatLng destino) async{
+  Future<void> _setPolyline(LatLng origen, LatLng destino, Color color, PolylineId poliId) async{
 
     final response = await http.get(Uri.parse(
         'https://maps.googleapis.com/maps/api/directions/json?origin=${origen.latitude},${origen.longitude}&destination=${destino.latitude},${destino.longitude}&key=${_apiKey}'));
@@ -125,9 +129,9 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
        setState(() {
         polylines.add(Polyline(
-          polylineId: const PolylineId('Ruta del viaje'),
+          polylineId: poliId,
           points: polylineCoordinates,
-          color: Colors.blue,
+          color: color,
           width: 5,
         )); 
 
@@ -192,6 +196,37 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
         position: origen,
         icon: BitmapDescriptor.fromBytes(iconMarkerOrigen),
         infoWindow: const InfoWindow(
+          title: "¡Usuario esperandoté!"
+        )
+      )
+    );
+
+     myMarkers.add(
+      Marker(
+        markerId: const MarkerId("destino"),
+        position: destino,
+        icon: BitmapDescriptor.fromBytes(iconMarkerDestino),
+        infoWindow: const InfoWindow(
+          title: "¡Destino del usuario, vamos!"
+        )
+      )
+    );
+
+    _setPolyline(origen, destino, Colors.blue, const PolylineId('Ruta del viaje'));
+
+  }
+
+  Future<void> _TrazarRutaRecogidaCliente(LatLng origen, LatLng destino) async{
+
+    final Uint8List iconMarkerOrigen =  await  getImagesFromMarkers(images[3], 90);
+    final Uint8List iconMarkerDestino =  await  getImagesFromMarkers(images[2], 90);
+
+    myMarkers.add(
+      Marker(
+        markerId: const MarkerId("origen"),
+        position: origen,
+        icon: BitmapDescriptor.fromBytes(iconMarkerOrigen),
+        infoWindow: const InfoWindow(
           title: "¡Te encuentras aquí!"
         )
       )
@@ -203,12 +238,12 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
         position: destino,
         icon: BitmapDescriptor.fromBytes(iconMarkerDestino),
         infoWindow: const InfoWindow(
-          title: "¡Tu destino!"
+          title: "¡El usuario está esperando aquí!"
         )
       )
     );
 
-    _setPolyline(origen, destino);
+    _setPolyline(origen, destino, Colors.purple, const PolylineId('Ruta a origen cliente.'));
 
   }
 
@@ -231,6 +266,13 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
     } catch (e) {
       print(e);
     }
+  }
+
+
+  static Future<void> openMap(LatLng origen, LatLng destino) async {
+    Uri url =
+      Uri.parse('geo:${origen.latitude},${origen.longitude}?q=${destino.latitude},${origen.longitude}');
+    launchUrl(url);
   }
 
   @override
@@ -271,12 +313,12 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: ElevatedButton(
-                    onPressed: (objViajeSolicitado==null || objViajeSolicitado!= null &&objViajeSolicitado!.estado=='P')?null:(){print("perreo");}, 
-                    child: Icon(Icons.map),
+                    onPressed: (objViajeSolicitado==null || objViajeSolicitado!= null &&objViajeSolicitado!.estado=='P')?null:(){openMap(_currentPosition!, initialLocation!);},
                     style: ElevatedButton.styleFrom(
-                      shape: CircleBorder(),
-                      padding: EdgeInsets.all(15)
-                    )),
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(15)
+                    ), 
+                    child: const Icon(Icons.map)),
                 ),
               ),
             ),
@@ -372,8 +414,12 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                   if(objViajeSolicitado!.estado=='P'){
                                     objViajeSolicitado!.estado = 'A';
                                     objViajeSolicitado!.tokenChofer = await storage.read(key: 'tknotif');
-                                    objViajeSolicitado!.ubicacionChofer = _currentPosition as String;
-                                    objViajeSolicitado!.claveUsuarioConfirmo = await  Provider.of<UsuarioService>(context, listen: false).objUsuarioSesion.id;
+                                    objViajeSolicitado!.ubicacionChofer = _currentPosition.toString(); //"${_currentPosition!.latitude}, ${_currentPosition!.longitude}";
+                                    objViajeSolicitado!.folio = objViajeSolicitado!.id;
+                                    final Usuario chofi =   Usuario.fromJson( await storage.read(key: "objUsuario") as String );
+                                    objViajeSolicitado!.claveUsuarioConfirmo = chofi.id;
+                                    objViajeSolicitado!.fechaConfirmacion = DateTime.now().toString();
+
                                   }else if (objViajeSolicitado!.estado=='A'){
                                     objViajeSolicitado!.estado = 'R';
                                   }else if (objViajeSolicitado!.estado=='R'){
@@ -394,6 +440,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                     await PushNotificationService.createNotification(dataNotif);
 
                                     //pintar linea del chofer al cliente
+                                    await _TrazarRutaRecogidaCliente(_currentPosition!, initialLocation as LatLng);
 
 
                                   }else if(objViajeSolicitado!.estado=='F'){

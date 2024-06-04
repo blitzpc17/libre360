@@ -4,9 +4,10 @@ class Viaje {
     String claveUsuarioConfirmo;
     String estado;
     String? fechaConfirmacion;
-    String? fechaLlegada;
+    String? fechaLlegada;//cuando llega al destino del cliente.. fin del viaje
+    String? fechaArrivo; //cuando llega con el cliente
     String fechaSolicitud;
-    String folio;
+    String? folio;
     String precio;
     String? ubicacionDestino;
     String ubicacionOrigen;
@@ -21,8 +22,9 @@ class Viaje {
         required this.estado,
         this.fechaConfirmacion,
         this.fechaLlegada,
+        this.fechaArrivo,
         required this.fechaSolicitud,
-        required this.folio,
+        this.folio,
         required this.precio,
         this.ubicacionDestino,
         required this.tokenCliente,
@@ -49,7 +51,8 @@ class Viaje {
         tokenCliente:  json["tokenCliente"],
         tokenChofer: json["tokenChofer"],
         ubicacionChofer: json["ubicacionChofer"],
-        clienteId: json["clienteId"] 
+        clienteId: json["clienteId"],
+        fechaArrivo: json["fechaArrivo"] 
     );
 
     Map<String, dynamic> toMap() => {
@@ -65,6 +68,7 @@ class Viaje {
         "tokenCliente":tokenCliente,
         "tokenChofer":tokenChofer,
         "clienteId":clienteId,
-        "ubicacionChofer":ubicacionChofer
+        "ubicacionChofer":ubicacionChofer,
+        "fechaArrivo":fechaArrivo
     };
 }

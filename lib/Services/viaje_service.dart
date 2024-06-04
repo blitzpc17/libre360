@@ -86,8 +86,22 @@ Future<void>saveRutaViaje( Ruta data)async {
 
   //crear el de modificar para cambiar el estado del viaje y agregar a que chofer se le asigno, en folio ponerle el id del registro
   Future<bool>updateViaje(Viaje viaje) async {
+    try{
+      final String? token =  await storage.read(key: 'token');    
+      final url = Uri.https( _baseUrl, 'viajes/${viaje.id}.json',{
+        'auth': token
+      });
+      //usuario.orden = "0";
+      final resp = await http.put( url, body: viaje.toJson() );
+      final decodedData = json.decode( resp.body );
+
+      return true;
   
-   return false;
+    
+    }catch(Exception ){
+        return false;
+    }
+  
   }
 
   Future<Viaje?>ObtenerViaje(String id) async {
