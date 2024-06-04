@@ -49,8 +49,7 @@ class UsuarioService extends ChangeNotifier{
     final url = Uri.https( _baseUrl, 'usuarios/${usuario.id}.json',{
       'auth': token
     });
-    usuario.online = 'S';
-    usuario.tknotif = await storage.read(key: 'tknotif');
+   
     //usuario.orden = "0";
     final resp = await http.put( url, body: usuario.toJson() );
     final decodedData = json.decode( resp.body );
@@ -149,8 +148,10 @@ class UsuarioService extends ChangeNotifier{
         objUsuarioSesion = Usuario.fromJson(objSerial);
         objUsuarioSesion.tknotif = await storage.read(key: 'tknotif');
         objUsuarioSesion.online = 'S';
-        objUsuarioSesion.id = await storage.read(key: 'id');
+        await storage.write(key: 'id', value: objUsuarioSesion.id);
         objUsuarioSesion.orden = "1";
+        objUsuarioSesion.online = 'S';
+        objUsuarioSesion.tknotif = await storage.read(key: 'tknotif');
         await updateUsuario(objUsuarioSesion);      
 
         objSerial =  await obtenerUsuarioXEmail(email);  
@@ -164,6 +165,9 @@ class UsuarioService extends ChangeNotifier{
   }
 
   Future logout() async {
+    objUsuarioSesion.orden = "0";
+    objUsuarioSesion.online = 'N';
+    await updateUsuario(objUsuarioSesion);      
     await storage.delete(key: 'token');
     await storage.delete(key: 'ruta');
     await storage.delete(key: 'viajecurso');
