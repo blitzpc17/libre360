@@ -38,4 +38,10 @@ flutter:
 
   assets:
     - assets/imgbackgrounds/
+    - assets/logo/
     - assets/
+    
+  fonts:
+    - family: agressive
+      fonts:
+        - asset: fonts/agressive.otf

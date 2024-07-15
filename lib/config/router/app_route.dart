@@ -36,7 +36,10 @@ final appRouter = GoRouter(
   GoRoute(
       path: '/solicitudviaje',
       name: SolicitarViajeScreen.name,
-      builder: (context, state) =>  const SolicitarViajeScreen() ),
+      builder: (context, state){
+        final params = state.extra as Map<String, dynamic>?;
+        return SolicitarViajeScreen(data: params);
+      } ),
   GoRoute(
       path: '/seleccionubicacion',
       name: SeleccionUbicacionScreen.name,

@@ -37,9 +37,6 @@ class UsuarioService extends ChangeNotifier{
 
     isSaving = false;
     notifyListeners();
-
-
-
   }
 
 
@@ -240,6 +237,23 @@ class UsuarioService extends ChangeNotifier{
     await storage.delete(key: 'ruta');
     await storage.delete(key: 'id');
     return "Tu sesión ha expirado.";
+  }
+
+
+  Future<Usuario?>obtenerUsuario(String id) async { 
+    final String? token = await storage.read(key: 'token');
+    final url = Uri.https(_baseUrl, 'usuarios/$id.json', {
+      'auth':token
+    });
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return Usuario.fromJson(response.body);
+    } else {
+      print('Error getting record: ${response.statusCode}');
+      return null;
+    }
   }
 
 

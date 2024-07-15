@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_app/Services/services.dart';
 import 'package:taxi_app/config/router/app_route.dart';
@@ -49,11 +50,11 @@ class _MainAppState extends State<MainApp> {
 
           if (objUsuario.rol == 'C') {
             //chofer
-            appRouter.pushNamed(HomeChoferScreen.name, extra: msg);
+            appRouter.pushReplacementNamed(HomeChoferScreen.name, extra: msg);
 
           }else{
             //usuario
-            //validad la data de la notificacion
+            appRouter.pushReplacementNamed(SolicitarViajeScreen.name, extra: msg);
             
 
           } 

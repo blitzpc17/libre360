@@ -51,6 +51,8 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
   String? costo;
   String? NombreDestino;
   String? NombreOrigen;
+  
+  var estadoViaje ="";
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -82,7 +84,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
         if(objViajeSolicitado!=null){
           initialLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionOrigen);
           finalLocation = await Provider.of<ViajeService>(context, listen:false ).convertirStringToLatLng(objViajeSolicitado!.ubicacionDestino as String);
-        
+          estadoViaje = objViajeSolicitado!.estado;
           if(initialLocation!=null ){
             _getAddressFromLatLng(LatLng(initialLocation!.latitude, initialLocation!.longitude), true );
           }
@@ -96,6 +98,8 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
           }
 
         }       
+     }else if(estadoViaje=='A'){
+
      }   
 
     });
@@ -128,6 +132,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
       List<LatLng> polylineCoordinates = _decodePolyline(points);
 
        setState(() {
+
         polylines.add(Polyline(
           polylineId: poliId,
           points: polylineCoordinates,
@@ -189,6 +194,8 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
     final Uint8List iconMarkerOrigen =  await  getImagesFromMarkers(images[0], 90);
     final Uint8List iconMarkerDestino =  await  getImagesFromMarkers(images[1], 90);
+    myMarkers.clear();
+    polylines.clear();
 
     myMarkers.add(
       Marker(
@@ -271,8 +278,26 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
 
   static Future<void> openMap(LatLng origen, LatLng destino) async {
     Uri url =
-      Uri.parse('geo:${origen.latitude},${origen.longitude}?q=${destino.latitude},${origen.longitude}');
+      Uri.parse('geo:${origen.latitude.toString()},${origen.longitude.toString()}?q=${destino.latitude.toString()},${destino.longitude.toString()}');
     launchUrl(url);
+  }
+
+    static Future<void> openWaze(LatLng origen, LatLng destino) async {
+      
+      final wazeUrl = 'waze://?ll=${destino.latitude.toString()},${destino.longitude.toString()}&navigate=yes&from=${origen.latitude.toString()},${origen.longitude.toString()}';
+      final appStoreUrl = 'https://apps.apple.com/us/app/waze-navigation-live-traffic/id323229106'; // URL de la App Store para Waze
+      final playStoreUrl = 'https://play.google.com/store/apps/details?id=com.waze'; 
+
+      if (await canLaunchUrl(Uri.parse(wazeUrl))) {
+        await launchUrl(Uri.parse(wazeUrl));
+      } else {
+          if (await canLaunchUrl(Uri.parse(playStoreUrl))) {
+            await launchUrl(Uri.parse(playStoreUrl));
+          } else {
+            throw 'Could not launch Play Store';
+          }
+       //poner un snackbar que no esta disponible el waze
+      }
   }
 
   @override
@@ -312,13 +337,31 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                 alignment: Alignment.topCenter,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: ElevatedButton(
-                    onPressed: (objViajeSolicitado==null || objViajeSolicitado!= null &&objViajeSolicitado!.estado=='P')?null:(){openMap(_currentPosition!, initialLocation!);},
-                    style: ElevatedButton.styleFrom(
-                      shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(15)
-                    ), 
-                    child: const Icon(Icons.map)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                      onPressed: (objViajeSolicitado==null || objViajeSolicitado!= null &&objViajeSolicitado!.estado=='P')?null:(){openMap(_currentPosition!, initialLocation!);},
+                      style: ElevatedButton.styleFrom(
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10)
+                      ), 
+                      child: const Icon(Icons.map)),
+                      ElevatedButton(
+                      onPressed: (objViajeSolicitado==null || objViajeSolicitado!= null &&objViajeSolicitado!.estado=='P')?null:(){openWaze(_currentPosition!, initialLocation!);},
+                      style: ElevatedButton.styleFrom(
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(15)
+                      ), 
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset("assets/waze.png")
+                          ],
+                      )
+                      ),
+                    ]
+                  ),
                 ),
               ),
             ),
@@ -407,47 +450,93 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                 alto: constraints12.maxHeight * 0.35,
                                 color: Colors.black,
                                 icono: FontAwesomeIcons.circleCheck,
-                                texto: "Aceptar viaje",
+                                texto: estadoViaje=="P"?"Aceptar viaje":(estadoViaje=="A"?"Avisar Arrivo":(estadoViaje=="U"?"Comenzar viaje":(estadoViaje=="R"?"Terminar Viaje":""))),
                                 onChanged:(initialLocation==null || finalLocation==null )?null: () async {
                                   
                                   //modificar estado viaje
                                   if(objViajeSolicitado!.estado=='P'){
                                     objViajeSolicitado!.estado = 'A';
+                                    estadoViaje = "A";
                                     objViajeSolicitado!.tokenChofer = await storage.read(key: 'tknotif');
-                                    objViajeSolicitado!.ubicacionChofer = _currentPosition.toString(); //"${_currentPosition!.latitude}, ${_currentPosition!.longitude}";
+                                    objViajeSolicitado!.ubicacionChofer = _currentPosition.toString();
                                     objViajeSolicitado!.folio = objViajeSolicitado!.id;
                                     final Usuario chofi =   Usuario.fromJson( await storage.read(key: "objUsuario") as String );
                                     objViajeSolicitado!.claveUsuarioConfirmo = chofi.id;
                                     objViajeSolicitado!.fechaConfirmacion = DateTime.now().toString();
 
-                                  }else if (objViajeSolicitado!.estado=='A'){
+                                  }else if(objViajeSolicitado!.estado == 'A'){
+                                    objViajeSolicitado!.estado = 'U';
+                                    estadoViaje = "U";
+                                    objViajeSolicitado!.fechaArrivo = DateTime.now().toString();
+
+                                  }else if(objViajeSolicitado!.estado == 'U'){
                                     objViajeSolicitado!.estado = 'R';
-                                  }else if (objViajeSolicitado!.estado=='R'){
-                                    objViajeSolicitado!.estado = 'T';
-                                  }else if (objViajeSolicitado!.estado=='T'){
+                                    estadoViaje = "R";
+                                  }else if(objViajeSolicitado!.estado == 'R'){
                                     objViajeSolicitado!.estado = 'F';
+                                    estadoViaje = "F";
+                                    objViajeSolicitado!.fechaLlegada = DateTime.now().toString();
+                                  }else{
+                                    objViajeSolicitado!.estado = 'C';
+                                    estadoViaje = "C";
                                   }
+
+
+
                                   await Provider.of<ViajeService>(context, listen: false).updateViaje(objViajeSolicitado!);
                                   //acciones despues de modificar el viaje
-                                  if(objViajeSolicitado!.estado=='A'){
-                                    //notificar cliente que va en camino
-                                    Map<String, dynamic> dataNotif = {
+                                   Map<String, dynamic> dataNotif = {};
+                                  if(objViajeSolicitado!.estado=='A'){                                 
+
+                                    //pintar linea del chofer al cliente
+                                    await _TrazarRutaRecogidaCliente(_currentPosition!, initialLocation as LatLng);
+                                    dataNotif = {
                                       "title":"¡Viaje aceptado!", 
                                       "body":"El conductor viene en camino...",
                                       "tokendestino":objViajeSolicitado!.tokenCliente,
                                       "data":{"viajeid":objViajeSolicitado!.id}//mandar data del conductor
                                     };
+
+                                  }else if(objViajeSolicitado!.estado == 'U'){
+
+                                      await  _TrazarRuta(initialLocation as LatLng, finalLocation as LatLng);
+                                      dataNotif = {
+                                      "title":"¡El conductor ya llegó!", 
+                                      "body":"Sal y arriva a tu destino.",
+                                      "tokendestino":objViajeSolicitado!.tokenCliente,
+                                      "data":{"viajeid":objViajeSolicitado!.id}//mandar data del conductor
+                                    };
+                                  }else if(objViajeSolicitado!.estado == 'R'){
+                                      dataNotif = {
+                                      "title":"¡Tu viaje ha comenzado!", 
+                                      "body":"Relajate y disfruta del viaje.",
+                                      "tokendestino":objViajeSolicitado!.tokenCliente,
+                                      "data":{"viajeid":objViajeSolicitado!.id}//mndar data del conductor                                      
+                                    };
+                                  
+                                  }else if(objViajeSolicitado!.estado == 'F'){
+                                      dataNotif = {
+                                      "title":"¡Hemos llegado!", 
+                                      "body":"Esperamos verte de nuevo.",
+                                      "tokendestino":objViajeSolicitado!.tokenCliente,
+                                      "data":{"viajeid":objViajeSolicitado!.id}//mandar data del conductor
+                                    };
+                                  }else{
+                                      dataNotif = {
+                                      "title":"¡Oh no!", 
+                                      "body":"Tu viaje ha sido cancelado.",
+                                      "tokendestino":objViajeSolicitado!.tokenCliente,
+                                      "data":{"viajeid":objViajeSolicitado!.id}//mandar data del conductor
+                                    };
+                                  }
+
+                                
+                                  if(dataNotif.isNotEmpty){
                                     await PushNotificationService.createNotification(dataNotif);
-
-                                    //pintar linea del chofer al cliente
-                                    await _TrazarRutaRecogidaCliente(_currentPosition!, initialLocation as LatLng);
-
-
-                                  }else if(objViajeSolicitado!.estado=='F'){
-                                    //limpiar pantalla home para un nuevo viaje
                                   }
                                   
-                                  //notificar al cliente que va en camino
+                                  
+                                  setState(() {});
                                  
 
                                   //await _mostrarAlertaBuscandoChofer();
@@ -455,7 +544,7 @@ class _HomeChoferScreenState extends State<HomeChoferScreen> {
                                 });
                                
                         },
-                        ))
+                      ))
                   ],
                 );
               }),
@@ -602,7 +691,6 @@ class _TarjetaTipoViaje extends StatelessWidget {
   final String? costo;
   final String? NombreOrigen;
   final String? NombreDestino;
-
 
   const _TarjetaTipoViaje({
     required this.ancho, 

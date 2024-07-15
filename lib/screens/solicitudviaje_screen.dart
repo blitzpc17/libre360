@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -25,8 +29,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class SolicitarViajeScreen extends StatefulWidget {
   
   static String name = "solicitudviaje_screen";
+   final Map<String,dynamic>? data;
 
-  const SolicitarViajeScreen({super.key});
+  const SolicitarViajeScreen({super.key, this.data});
 
   @override
   State<SolicitarViajeScreen> createState() => _SolicitarViajeScreenState();
@@ -46,6 +51,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
   final String _apiKey = "AIzaSyCjK6yYspK8d81TwsjbZkr3quq59iHRmbw";//"AIzaSyB_z4OF-_0p0T3GNJtaakJiljud-8cCHMM";
   double? _tarifa;
   final storage = FlutterSecureStorage();
+  Usuario? objChofer;
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(18.4624477, -97.3953397),
@@ -54,7 +60,8 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
 
   List<String> images = [
     'assets/origen.png',
-    'assets/llegada.png'
+    'assets/llegada.png',
+    'assets/taxi.png'
   ];
 
   final List<Marker> myMarkers = [];
@@ -74,6 +81,31 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
         if(ruta!=null){
           initialLocation = ruta.origen;
           finalLocation = ruta.destino;
+
+          //validar el estado del viaje si viene por notif
+          if(widget.data!=null && widget.data!.isNotEmpty){
+            Viaje? objViaje = await Provider.of<ViajeService>(context, listen: false).ObtenerViaje(widget.data!["viajeid"]);
+
+            if(objViaje!=null){
+
+              viajeEncontrado = true;  
+
+              if(objViaje!=null && objViaje.estado!='P'){
+                   objChofer = await Provider.of<UsuarioService>(context, listen: false).obtenerUsuario(objViaje.claveUsuarioConfirmo);
+              }            
+
+              if(objViaje!.estado == 'A'){
+                objChofer = await Provider.of<UsuarioService>(context, listen: false).obtenerUsuario(objViaje.claveUsuarioConfirmo);
+                LatLng cordchofer=await Provider.of<ViajeService>(context, listen: false).convertirStringToLatLng(objViaje!.ubicacionChofer as String);
+                _SetLocationChofer(cordchofer);
+              }
+
+            }
+
+        
+          }
+          
+
         }       
 
         if(initialLocation!=null ){
@@ -87,6 +119,8 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
         if(initialLocation!=null && finalLocation!=null){
           _TrazarRuta(initialLocation as LatLng, finalLocation as LatLng);
         }
+
+    
 
     });
 
@@ -254,6 +288,22 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
     }
   }
 
+   Future<void> _SetLocationChofer(LatLng origen) async{
+      final Uint8List iconMarkerOrigen =  await  getImagesFromMarkers(images[2], 90);
+
+      myMarkers.add(
+        Marker(
+          markerId: const MarkerId("chofer"),
+          position: origen,
+          icon: BitmapDescriptor.fromBytes(iconMarkerOrigen),
+          infoWindow: const InfoWindow(
+            title: "¡Conductor en camino!"
+          )
+        )
+      );
+
+   }
+
   @override
   Widget build(BuildContext context) {
     _pantalla = MediaQuery.of(context).size;
@@ -290,7 +340,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 20),
+                          horizontal: 20, vertical: 10),
                       width: constraints.maxWidth,
                       height: constraints.maxHeight * 0.10,
                       child: const Align(
@@ -375,11 +425,12 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                             alignment: Alignment.bottomCenter,
                             child: SizedBox(
                               width: constraints5.maxWidth * 0.75,
-                              height: constraints5.maxHeight * 0.18,
+                              height: constraints5.maxHeight * 0.30,                              
                               child: viajeEncontrado
                                   ? _TarjetaChoferAsignado(
-                                      ancho: constraints5.maxWidth * 0.60,
-                                      alto: constraints5.maxHeight * 0.32)
+                                      ancho: constraints5.maxWidth * 1,
+                                      alto: constraints5.maxHeight * 1,
+                                      chofer: objChofer,)  
                                   : _TarjetaTipoViaje(
                                      costo:  (_tarifa ?? 0).toStringAsFixed(2),
                                       ancho: constraints5.maxWidth * 0.60,
@@ -494,7 +545,7 @@ class _SolicitarViajeScreenState extends State<SolicitarViajeScreen> {
                     height: constraints.maxHeight * 0.40,
                     child: const Center(
                       child: Text(
-                        "Estamos buscando un chofer para emprender tu viaje...",
+                        "Bucando conductor, espera un momento...",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -671,8 +722,9 @@ class _TarjetaTipoViaje extends StatelessWidget {
 class _TarjetaChoferAsignado extends StatelessWidget {
   final double ancho;
   final double alto;
+  final Usuario? chofer;
   const _TarjetaChoferAsignado(
-      {super.key, required this.ancho, required this.alto});
+      {super.key, required this.ancho, required this.alto, this.chofer});
 
   @override
   Widget build(BuildContext context) {
@@ -695,61 +747,80 @@ class _TarjetaChoferAsignado extends StatelessWidget {
             children: [
               SizedBox(
                 width: constraints.maxWidth,
-                height: constraints.maxHeight * 0.25,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: constraints.maxWidth * 0.20,
-                      height: constraints.maxHeight,
-                      child: const CircleAvatar(
-                        radius: 30,
-                        backgroundImage: AssetImage('assets/driver.png'),
+                height: constraints.maxHeight,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: constraints.maxWidth * 0.20,
+                        height: constraints.maxHeight,
+                        child: const CircleAvatar(
+                          radius: 30,
+                          backgroundImage: AssetImage('assets/driver.png'),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: constraints.maxWidth * 0.05,
-                    ),
-                    SizedBox(
-                      width: constraints.maxWidth * 0.55,
-                      height: constraints.maxHeight,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "Tu chofer",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: Colors.white),
-                          ),
-                          Text(
-                            "Nombre del Chofer",
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.white),
-                          ),
-                        ],
+                      SizedBox(
+                        width: constraints.maxWidth * 0.10,
                       ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: constraints.maxHeight * 0.05,
-              ),
-              SizedBox(
-                width: constraints.maxWidth * 0.75,
-                height: constraints.maxHeight * 0.25,
-                child: const Center(
-                  child: Text(
-                    "El chofer asignado llegará en breve.",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.white),
+                      SizedBox(
+                        width: constraints.maxWidth * 0.55,
+                        height: constraints.maxHeight,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Datos del conductor",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.white,                                
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              chofer!=null?"${chofer!.nombres} ${chofer!.apellidos}":"",
+                              style: const TextStyle(
+                                  fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                            Text(
+                              chofer!=null?"Modelo: ${chofer!.modelo}, placa: ${chofer!.placa}":"",
+                              style: const TextStyle(
+                                  fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                             Text(
+                              chofer!=null?"Marca: ${chofer!.marca}":"",
+                              style: const TextStyle(
+                                  fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                             Text(
+                              chofer!=null? "Color: ${chofer!.color}":"",
+                              style: const TextStyle(
+                                  fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 5),
+                            const Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Espere un momento, su conductor esta en camino.",
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                  
+                          ],
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ),
+             
+              
             ],
           );
         },

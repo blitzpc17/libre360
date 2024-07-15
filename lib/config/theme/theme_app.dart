@@ -6,6 +6,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorSchemeSeed: seedColor,
+      fontFamily: 'agressive',
       listTileTheme: const ListTileThemeData(iconColor: seedColor),
       inputDecorationTheme: const InputDecorationTheme(
           floatingLabelStyle: TextStyle(color: Colors.black45),
