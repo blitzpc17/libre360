@@ -65,7 +65,7 @@ class _LoginForm extends StatelessWidget {
       child: Container(         
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         decoration: const BoxDecoration(
-          color: Color.fromRGBO(50, 50, 50, 0.35),
+          color: Color.fromRGBO(50, 50, 50, 0.65),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

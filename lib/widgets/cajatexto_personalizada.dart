@@ -11,6 +11,7 @@ class CajaTextoPersonalizada extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType? textInputType;
   final Color? color;
+
   
 
   const CajaTextoPersonalizada(
@@ -31,10 +32,11 @@ class CajaTextoPersonalizada extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //final colors = Theme.of(context).colorScheme;
-
+    const Color amarillolib = Color.fromRGBO(232, 184, 47, 1);
+    const Color negrolib = Color.fromRGBO(0, 0, 0, 1);
 
     final border = OutlineInputBorder(
-        borderSide: BorderSide(color: color??Colors.black45),
+        borderSide: BorderSide(color: color??Colors.black45,width: 2),
         borderRadius: BorderRadius.circular(10));
 
     return TextFormField(  
@@ -46,12 +48,12 @@ class CajaTextoPersonalizada extends StatelessWidget {
       autocorrect: false,
       style: TextStyle(color: color??Colors.black45),
       decoration: InputDecoration(
-        floatingLabelStyle: TextStyle(color: color==null?Colors.black45:Colors.amber),
+        floatingLabelStyle: TextStyle(color: color==null?Colors.black45:amarillolib),
         hintStyle: TextStyle(color: color==null?Colors.grey:Colors.amber[100]),
         enabledBorder: border,
         focusedBorder: border.copyWith(
-            borderSide: BorderSide(color: color == null?Colors.black45: Colors.amber)),
-            hoverColor: color == null? Colors.black45:Colors.amber,            
+            borderSide: BorderSide(color: color == null?Colors.black45: amarillolib)),
+            hoverColor: color == null? Colors.black45:amarillolib,            
         errorBorder:
             border.copyWith(borderSide: BorderSide(color: Colors.red.shade800)),
         focusedErrorBorder:
@@ -62,9 +64,9 @@ class CajaTextoPersonalizada extends StatelessWidget {
             color: color??Colors.black45, fontWeight: FontWeight.normal),
         hintText: hint,
         errorText: errorMessage,
-        focusColor: color==null?Colors.black:Colors.amber,
+        focusColor: color==null?Colors.black:amarillolib,
         suffixIcon: icono == null ? Container() : Icon(icono),      
-        suffixIconColor: color==null?Colors.grey: Colors.amber 
+        suffixIconColor: color==null?Colors.grey: amarillolib
         //prefix: iconoPrefix == null ? Container() : Icon(iconoPrefix)
       ),
     );

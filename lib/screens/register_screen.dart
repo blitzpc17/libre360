@@ -66,34 +66,30 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
 
     final userForm = Provider.of<UsuarioFormProvider>(context);
 
+        final border = OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.white, width: 2),
+        borderRadius: BorderRadius.circular(10));
+        const Color amarillolib = Color.fromRGBO(232, 184, 47, 1);
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
-            Positioned(
-              top: -50,
-              left: widget.pantalla.width - (widget.pantalla.width * 0.50),
-              child: Container(
-                width: widget.pantalla.width * 0.65,
-                height: widget.pantalla.height * 0.22,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/imgbackgrounds/bg_registro.png'),
-                    fit: BoxFit.fitWidth,
-                  ),
-                  shape: BoxShape.circle,
+            Container(            
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/imgbackgrounds/login1.jpg'),
+                  fit: BoxFit.fitHeight,
                 ),
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               width: widget.pantalla.width,
               height: widget.pantalla.height,
               decoration: const BoxDecoration(                
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.black26, Colors.black87])),
+                    color: Color.fromRGBO(50, 50, 50, 0.65)
+                  ),
               child: Form(
                 key: userForm.formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -134,22 +130,26 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
                               children: <Widget>[
                                 SizedBox(
                                   width: constraints2.maxWidth,
-                                  height: constraints2.maxHeight * 0.22,
-                                  child: const Text(
-                                    "Bienvenido",
-                                    style: TextStyle(
-                                        fontSize: 35,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
+                                  height: constraints2.maxHeight * 0.28,                                  
+                                  child: const Center(
+                                    child: Text(                                    
+                                      "Bienvenido",
+                                      style: TextStyle(
+                                          fontSize: 35,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
                                   ),
                                 ),                              
-                                SizedBox(
+                                SizedBox(                                  
                                   width: constraints2.maxWidth,
-                                  height: constraints2.maxHeight * 0.10,
-                                  child: const Text(
-                                    "¡Ingresa tus datos y viaja con nosotros!",
-                                    style: TextStyle(
-                                        fontSize: 15, color: Colors.black87),
+                                  height: constraints2.maxHeight * 0.25,
+                                  child: const Center(
+                                    child: Text(
+                                      "¡Registrate y viaja ahora!",
+                                      style: TextStyle(
+                                          fontSize: 15, color: Color.fromRGBO(232,184,47,1)),
+                                    ),
                                   ),
                                 ),
                                 /*SizedBox(
@@ -160,165 +160,195 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
                           }),
                         )),
                     Expanded(
-                        flex: 8,
+                        flex: 10,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 0, horizontal: 25),
-                          child: Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                                color: Colors.white70,
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Center(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.vertical,
-                                child: Column(
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    DropdownButtonFormField<Option>(
-                                    value: null,
-                                    decoration: const InputDecoration(
-                                        prefixIcon: Padding(
-                                            padding: EdgeInsets.only(
-                                                left: 10, top: 12),
-                                            child: FaIcon(
-                                              FontAwesomeIcons.userCheck,
-                                              size: 20,
-                                            )),
-                                        labelText: 'Quiero ser...'),
-                                    items: SelectOptions.ListaPerfiles
-                                        .map((e) {
-                                      return DropdownMenuItem<Option>(
-                                          value: e, 
-                                          child: Text(e.label));
-                                    }).toList(),
-                                    onChanged: (val) {
-                                      setState(() {
-                                        objUsuario.rol = val != null?val.value:"";                                        
-                                        print(objUsuario.rol);
-                                      });
-                                    },
-                                    padding: const EdgeInsets.all(5),
+                          padding: const EdgeInsets.all(15),                         
+                          child: Center(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 10),
+                                  DropdownButtonFormField<Option>(
+                                  value: null,
+                                  decoration: const InputDecoration(
+                                      prefixIcon: Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 10, top: 12),
+                                          child: FaIcon(
+                                            FontAwesomeIcons.userCheck,
+                                            size: 20,
+                                          )),
+                                        floatingLabelStyle: TextStyle(color: amarillolib),
+                                        hintStyle: TextStyle(color: Colors.amber),       
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Colors.white, // Color del borde cuando no está enfocado
+                                            width: 2.0, // Grosor del borde cuando no está enfocado
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: amarillolib, // Color del borde cuando está enfocado
+                                            width: 2.0, // Grosor del borde cuando está enfocado
+                                          ),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Colors.red, // Color del borde por defecto
+                                            width: 2.0, // Grosor del borde por defecto
+                                          ),
+                                        ),
+                                        labelStyle: TextStyle(
+                                            color: Colors.white, fontWeight: FontWeight.normal),
+                                        focusColor: amarillolib,      
+                                        suffixIconColor: amarillolib,
+                                        prefixIconColor: amarillolib,
+                                        labelText: 'Quiero ser...'
                                   ),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    CajaTextoPersonalizada(
-                                      label: "Nombre(s)",
-                                      icono: FontAwesomeIcons.user,
-                                      onChanged: (value){ 
-                                        objUsuario.nombres = value;
-                                      },
-                                    ),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    CajaTextoPersonalizada(
-                                      label: "Apellidos",
-                                      icono: FontAwesomeIcons.user,
-                                      onChanged: (value){ 
-                                        objUsuario.apellidos = value;
-                                      },
-                                    ),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    CajaTextoPersonalizada(
-                                      label: "Correo electrónico",                                      
-                                      icono: FontAwesomeIcons.envelope,
-                                      onChanged: (value){ 
-                                        objUsuario.email = value;
-                                      },
-                                    ),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    CajaTextoPersonalizada(
-                                      label: "Contraseña",
-                                      icono: FontAwesomeIcons.lock,
-                                      obscureText: true,
-                                      onChanged: (value){ 
-                                        objUsuario.password = value;
-                                      },
-                                    ),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    CajaTextoPersonalizada(
-                                      label: "Teléfono",
-                                      icono: FontAwesomeIcons.phone,
-                                      onChanged: (value){ 
-                                        objUsuario.telefono = value;
-                                      },
-                                    ),
-                                    objUsuario.rol == "C"
-                                        ? Container(
-                                            child: Column(
-                                              children: [
-                                                const SizedBox(
-                                                  height: 15,
-                                                ),
-                                                CajaTextoPersonalizada(
-                                                  label: "Domicilio",
-                                                  icono: FontAwesomeIcons
-                                                      .addressCard,
-                                                  onChanged: (value){ 
-                                                    objUsuario.domicilio = value;
-                                                  },
-                                                ),
-                                                const SizedBox(
-                                                  height: 15,
-                                                ),
-                                                CajaTextoPersonalizada(
-                                                  label: "Modelo",
-                                                  icono:
-                                                      FontAwesomeIcons.carRear,
-                                                  onChanged: (value){ 
-                                                    objUsuario.modelo = value;
-                                                  },
-                                                ),
-                                                const SizedBox(
-                                                  height: 15,
-                                                ),
-                                                CajaTextoPersonalizada(
-                                                  label: "Placas",
-                                                  icono: FontAwesomeIcons
-                                                      .circleInfo,
-                                                  onChanged: (value){ 
-                                                    objUsuario.placa = value;
-                                                  },
-                                                ),
-                                                 const SizedBox(
-                                                  height: 15,
-                                                ),
-                                                CajaTextoPersonalizada(
-                                                  label: "Color",
-                                                  icono: FontAwesomeIcons
-                                                      .circleInfo,
-                                                  onChanged: (value){ 
-                                                    objUsuario.color = value;
-                                                  },
-                                                ),
-                                                 const SizedBox(
-                                                  height: 15,
-                                                ),
-                                                CajaTextoPersonalizada(
-                                                  label: "Marca",
-                                                  icono: FontAwesomeIcons
-                                                      .circleInfo,
-                                                  onChanged: (value){ 
-                                                    objUsuario.marca = value;
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                        : Container(
-
-
-                                        )
-                                  ],
+                                  dropdownColor: const Color.fromRGBO(0,0,0,1),
+                                  items: SelectOptions.ListaPerfiles
+                                      .map((e) {
+                                    return DropdownMenuItem<Option>(
+                                        value: e, 
+                                        child: Text(e.label, style: const TextStyle(color: Colors.white),));
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      objUsuario.rol = val != null?val.value:"";                                        
+                                      print(objUsuario.rol);
+                                    });
+                                  },
+                                 
                                 ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  CajaTextoPersonalizada(
+                                    label: "Nombre(s)",
+                                    icono: FontAwesomeIcons.user,
+                                    onChanged: (value){ 
+                                      objUsuario.nombres = value;
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  CajaTextoPersonalizada(
+                                    label: "Apellidos",
+                                    icono: FontAwesomeIcons.user,
+                                    onChanged: (value){ 
+                                      objUsuario.apellidos = value;
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  CajaTextoPersonalizada(
+                                    label: "Correo electronico",                                      
+                                    icono: FontAwesomeIcons.envelope,
+                                    onChanged: (value){ 
+                                      objUsuario.email = value;
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  CajaTextoPersonalizada(
+                                    label: "Contrasena",
+                                    icono: FontAwesomeIcons.lock,
+                                    obscureText: true,
+                                    onChanged: (value){ 
+                                      objUsuario.password = value;
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  CajaTextoPersonalizada(
+                                    label: "Telefono",
+                                    icono: FontAwesomeIcons.phone,
+                                    onChanged: (value){ 
+                                      objUsuario.telefono = value;
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                  objUsuario.rol == "C"
+                                      ? Container(
+                                          child: Column(
+                                            children: [
+                                              const SizedBox(
+                                                height: 15,
+                                              ),
+                                              CajaTextoPersonalizada(
+                                                label: "Domicilio",
+                                                icono: FontAwesomeIcons
+                                                    .addressCard,
+                                                onChanged: (value){ 
+                                                  objUsuario.domicilio = value;
+                                                },
+                                                color: Colors.white,
+                                              ),
+                                              const SizedBox(
+                                                height: 15,
+                                              ),
+                                              CajaTextoPersonalizada(
+                                                label: "Modelo",
+                                                icono:
+                                                    FontAwesomeIcons.carRear,
+                                                onChanged: (value){ 
+                                                  objUsuario.modelo = value;
+                                                },
+                                                color: Colors.white,
+                                              ),
+                                              const SizedBox(
+                                                height: 15,
+                                              ),
+                                              CajaTextoPersonalizada(
+                                                label: "Placas",
+                                                icono: FontAwesomeIcons
+                                                    .circleInfo,
+                                                onChanged: (value){ 
+                                                  objUsuario.placa = value;
+                                                },
+                                                color: Colors.white,
+                                              ),
+                                               const SizedBox(
+                                                height: 15,
+                                              ),
+                                              CajaTextoPersonalizada(
+                                                label: "Color",
+                                                icono: FontAwesomeIcons
+                                                    .circleInfo,
+                                                onChanged: (value){ 
+                                                  objUsuario.color = value;
+                                                },
+                                                color: Colors.white,
+                                              ),
+                                               const SizedBox(
+                                                height: 15,
+                                              ),
+                                              CajaTextoPersonalizada(
+                                                label: "Marca",
+                                                icono: FontAwesomeIcons
+                                                    .circleInfo,
+                                                onChanged: (value){ 
+                                                  objUsuario.marca = value;
+                                                },
+                                                color: Colors.white,
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Container(
+                        
+                        
+                                      )
+                                ],
                               ),
                             ),
                           ),
@@ -331,11 +361,11 @@ class _RegisterScreenBodyState extends State<_RegisterScreenBody> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               BotonPersonalizado(
-                                ancho: constraints.maxWidth * 0.75,
-                                alto: constraints.maxHeight * 0.35,
+                                ancho: constraints.maxWidth ,
+                                alto: 60,
                                 color: Colors.black54,
                                 icono: FontAwesomeIcons.paperPlane,
-                                texto: "Registrarse",
+                                texto: "Registrarme",
                                 onChanged: () async {
                                   print(userForm.isValidForm());
                                   if(!userForm.isValidForm()){
